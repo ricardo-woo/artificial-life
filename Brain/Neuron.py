@@ -1,0 +1,47 @@
+import random
+import math
+
+WEIGHT_MIN, WEIGHT_MAX = -5, 5
+BIAS_MIN, BIAS_MAX = -5, 5
+
+
+class Neuron:
+    def __init__(self, number_of_inputs):
+        self.weights = [random.uniform(-1, 1) for _ in range(number_of_inputs)]
+        self.bias = random.uniform(-1, 1)
+
+    def activate(self, inputs):
+
+        value = self.bias
+
+        for i in range(len(inputs)):
+            value += inputs[i] * self.weights[i]
+        return math.tanh(value)
+
+    def copy(self):
+        new_neuron = Neuron(len(self.weights))
+        new_neuron.weights = self.weights[:]
+        new_neuron.bias = self.bias
+        return new_neuron
+
+    def mutate(self, mutation_rate=0.1, mutation_strength=0.2):
+        for i in range(len(self.weights)):
+            if random.random() < mutation_rate:
+                self.weights[i] += random.uniform(-mutation_strength, mutation_strength)
+                self.weights[i] = max(WEIGHT_MIN, min(WEIGHT_MAX, self.weights[i]))
+        if random.random() < mutation_rate:
+            self.bias += random.uniform(-mutation_strength, mutation_strength)
+            self.bias = max(BIAS_MIN, min(BIAS_MAX, self.bias))
+
+    def get_data(self):
+        return {"weights": self.weights, "bias": self.bias}
+
+    @staticmethod
+    def from_data(data):
+
+        neuron = Neuron(len(data["weights"]))
+
+        neuron.weights = data["weights"]
+        neuron.bias = data["bias"]
+
+        return neuron
