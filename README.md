@@ -4,11 +4,7 @@ An evolutionary artificial-life simulation built with Python and Pygame.
 
 Organisms live in a 2D world, search for food, manage their energy, and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
 
-![Simulation](<img src="assets/simulation_ss.png 
-        alt="Screenshot of simulation" 
-        width="400" 
-        height="400" 
-        style="display: block; margin: 0 auto" />)
+![Simulation](assets/simulation_ss.png)
 
 ## How it works
 
@@ -50,20 +46,6 @@ Some behaviors that have emerged or are currently being investigated include:
 * Searching when food is not visible
 * Evolution of physical traits
 
-## Running
-
-```bash
-pip install pygame
-python main.py
-```
-
-## Neural Network
-
-Each organism has a neural network that receives environmental
-information and produces movement decisions.
-
-![Neural Network Architecture](assets/neural_network.svg)
-
 ## Neural Network
 
 Each organism has a small neural network that receives information about its environment and produces movement decisions.
@@ -84,6 +66,14 @@ Each organism has a small neural network that receives information about its env
 
 The neural network's weights and biases are inherited and mutated between generations, allowing behavioral strategies to evolve over time.
 
+![Neural Network Architecture](assets/neural-network.svg)
+
+## Running
+
+```bash
+pip install pygame
+python main.py
+```
 
 ## Project Status
 
