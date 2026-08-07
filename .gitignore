@@ -10,3 +10,4 @@ __pycache__/
 # Simulation Output and Save Data
 save.json
 experiment_log.csv
+.DS_Store
