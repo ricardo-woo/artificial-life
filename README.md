@@ -2,13 +2,13 @@
 
 An evolutionary artificial life simulation built with Python and Pygame.
 
-The Organisms live in a 2D world, search for food, manage their energy, and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
+The Organisms live in a 2D world, search for food, manage their energy and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
 
-This project started as a way for me to learn about neural networks, so expect some rough mistakes. Feedback on the network architecture, mutation logic, or fitness function are very welcome.
+This project started as a way for me to learn about neural networks, so expect some mistakes. Feedback on the network architecture, mutation logic or really anything are very welcome!
 
 ![Simulation](assets/simulation_ss.png)
 
-## Getting Started
+## Instructions if you want to try it
 
 ### Requirements
 - Python 3.10+
@@ -24,9 +24,9 @@ cd artificial-life
 pip install -r requirements.txt
 ```
 
-### Configuration
+### How you can tweak the projects parameters
 
-The simulation's main parameters can be configured in `settings.py`.
+The simulations main parameters can be configured in `settings.py`.
 
 Adjusting `settings.py` allows experiments to be run without changing the core simulation code.
 
@@ -36,7 +36,7 @@ Adjusting `settings.py` allows experiments to be run without changing the core s
 python main.py
 ```
 
-## How it works
+## How the simulation works at the moment
 
 Each organism has:
 * Energy
@@ -47,15 +47,15 @@ Each organism has:
 * Turning ability
 * A neural network
 
-The neural network receives information about the organism's environment and produces movement decisions.
+The neural network receives information about the organism environment and produces movement decisions.
 
 Organisms that survive longer and find more food have higher fitness and are more likely to contribute to the next generation.
 
-## Evolution
+### Evolution
 
-Physical traits and neural-network parameters mutate between generations.
+Physical traits and neural network parameters mutate between generations.
 
-The fitness function currently rewards food consumption, survival, and movement:
+The fitness function currently rewards food consumption, survival and movement:
 
 ```python
 fitness = (
@@ -65,33 +65,20 @@ fitness = (
         )
 ```
 
-The goal is not to explicitly program the organisms to find food, but to create conditions where useful behavior can **emerge through evolution**.
-
-## Experiments
-
-The simulation records each generation to CSV so changes in fitness, speed, vision, age, and food consumption can be analyzed over time.
-
-Some behaviors that have emerged:
-* Food seeking
-* Energy conservation
-* Movement strategies
-* Searching when food is not visible
-* Evolution of physical traits
-
-## Neural Network
+### Neural Network
 
 Each organism has a small neural network that receives information about its environment and produces movement decisions.
 
-### Inputs
+#### Inputs
 * Energy
 * Food detected
-* Distance to food
+* Distance to closest food
 * Sin(angle to closest food)
 * Cos(angle to closest food)
 * Time since food was detected
-* Exploration signal from an Ornstein-Uhlenbeck process
+* Exploration signal using Ornstein-Uhlenbeck process
 
-### Outputs
+#### Outputs
 * Turn
 * Movement
 
@@ -99,4 +86,4 @@ Each organism has a small neural network that receives information about its env
 
 ## Project Status
 
-This is an ongoing experiment. The simulation and evolutionary system are still being developed and tested.
+This is an ongoing project. The simulation and evolutionary system are still being developed and tested.
