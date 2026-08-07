@@ -4,6 +4,7 @@ import os
 
 from Brain.Genome import Genome
 from organism import Organism
+from settings import (SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT)
 
 
 class SaveManager:
@@ -12,7 +13,7 @@ class SaveManager:
 
     def log_generation_to_csv(self, gen, gen_time, organisms_list):
 
-        file_exists = os.path.exists("experiment_log.csv")
+        file_exists = os.path.exists(CSV_LOG_PATH)
 
         if organisms_list:
 
@@ -58,7 +59,7 @@ class SaveManager:
             avg_food = 0
             best_food = 0
 
-        with open("experiment_log.csv", mode="a", newline="") as f:
+        with open(CSV_LOG_PATH, mode="a", newline="") as f:
 
             writer = csv.writer(f)
 
@@ -84,17 +85,17 @@ class SaveManager:
             writer.writerow(
                 [
                     gen,
-                    round(gen_time, 2),
-                    round(best_fitness, 2),
-                    round(avg_fitness, 2),
-                    round(best_speed, 2),
-                    round(avg_speed, 2),
-                    round(best_vision, 2),
-                    round(avg_vision, 2),
-                    round(best_age, 2),
-                    round(avg_age, 2),
+                    round(gen_time, FLOAT_ROUND_PRECISION),
+                    round(best_fitness, FLOAT_ROUND_PRECISION),
+                    round(avg_fitness, FLOAT_ROUND_PRECISION),
+                    round(best_speed, FLOAT_ROUND_PRECISION),
+                    round(avg_speed, FLOAT_ROUND_PRECISION),
+                    round(best_vision, FLOAT_ROUND_PRECISION),
+                    round(avg_vision, FLOAT_ROUND_PRECISION),
+                    round(best_age, FLOAT_ROUND_PRECISION),
+                    round(avg_age, FLOAT_ROUND_PRECISION),
                     best_food,
-                    round(avg_food, 2),
+                    round(avg_food, FLOAT_ROUND_PRECISION),
                 ]
             )
 
@@ -106,7 +107,7 @@ class SaveManager:
         }
 
         with open("save.json", "w") as file:
-            json.dump(data, file, indent=4)
+            json.dump(data, file, indent=JSON_INDENT)
 
     def load_game(self):
         with open("save.json", "r") as file:

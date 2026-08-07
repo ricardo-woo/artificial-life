@@ -1,33 +1,30 @@
-import pygame
-import sys
-import random
-import time
 import os
+import random
+import sys
+import time
+import pygame
 
-
+from Brain.Genome import Genome
 from camera import Camera
 from food import Food
 from organism import Organism
 from Population import Population
-from Brain.Genome import Genome
-from ui import UIManager
 from SaveManager import SaveManager
-from Simulation.SimulationClock import SimulationClock
-
 from settings import (
-    WIDTH, HEIGHT, FPS, WORLD_WIDTH, WORLD_HEIGHT, BACKGROUND_COLOR,
-    SAVE_INTERVAL_MS, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_RESPAWN_INTERVAL,
-    FOOD_ENERGY_VAL, MAX_ENERGY, KEY_FAST_FORWARD, KEY_FOLLOW_ORGANISM,
-    KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION)
+    BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL,
+    FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
+    KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY,
+    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH,
+)
+from Simulation.SimulationClock import SimulationClock
+from ui import UIManager
 
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
 pygame.display.set_caption("Artificial Life")
 
 clock = pygame.time.Clock()
-
 font = pygame.font.Font(None, 24)
 
 save_manager = SaveManager()
@@ -42,17 +39,14 @@ generation_end_time = 0
 
 simulation_clock = SimulationClock()
 generation_simulation_time = 0
+is_fast_forwarding = False
 
 organisms = []
 
 if os.path.exists("save.json"):
-
     organisms, generation, generation_simulation_time = save_manager.load_game()
-
 else:
-
     generation = 1
-
     organisms = population.create_initial_population(organisms)
 
 food_respawn_timer = 0
@@ -81,7 +75,6 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if waiting_for_next_gen:
                 if event.key == KEY_NEXT_GENERATION:
-                    # Proceed to next generation immediately on ENTER
                     organisms = population.next_generation(organisms)
                     generation += 1
                     foods = []
@@ -95,6 +88,7 @@ while running:
                     waiting_for_next_gen = False
                     generation_simulation_time = 0
                     food_respawn_timer = 0
+                    is_fast_forwarding = False
                     simulation_clock.speed = 1
             else:
                 if event.key == KEY_PAUSE_SELECTION:
@@ -104,13 +98,15 @@ while running:
                 elif event.key == KEY_FOLLOW_ORGANISM:
                     if selected_organism is not None:
                         camera.following = selected_organism
+
                 elif event.key == KEY_FAST_FORWARD:
-                    simulation_clock.speed = FAST_FORWARD_SPEED
-        elif event.type == pygame.KEYUP:
-            if event.key == KEY_FAST_FORWARD:
-                simulation_clock.speed = 1
+                    # Toggle fast-forward state
+                    is_fast_forwarding = not is_fast_forwarding
+                    simulation_clock.speed = (
+                        FAST_FORWARD_SPEED if is_fast_forwarding else 1
+                    )
+
         elif not waiting_for_next_gen:
-            # Normal mouse events for camera/selection
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 2:
                     camera.start_drag()
@@ -134,7 +130,7 @@ while running:
                     camera.zoom_out()
 
     if waiting_for_next_gen:
-        if time.time() - generation_end_time >= 0:
+        if time.time() - generation_end_time >= GENERATION_END_WAIT_TIME:
             organisms = population.next_generation(organisms)
             generation += 1
             foods = []
@@ -147,6 +143,8 @@ while running:
             waiting_for_next_gen = False
             generation_simulation_time = 0
             food_respawn_timer = 0
+            is_fast_forwarding = False
+            simulation_clock.speed = 1
 
     if not waiting_for_next_gen:
         dt = simulation_clock.update()
@@ -162,7 +160,9 @@ while running:
             for food in foods[:]:
                 if organism.eat(food):
                     organism.food_eaten += 1
-                    organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
+                    organism.energy = min(
+                        MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL
+                    )
                     organism.time_since_food = 0
                     foods.remove(food)
                     break
@@ -189,6 +189,8 @@ while running:
             generation_end_time = time.time()
             selected_organism = None
             camera.following = None
+            is_fast_forwarding = False
+            simulation_clock.speed = 1
             save_manager.log_generation_to_csv(
                 generation, generation_simulation_time, organisms
             )

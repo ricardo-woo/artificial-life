@@ -1,8 +1,9 @@
 import random
 import math
 
-WEIGHT_MIN, WEIGHT_MAX = -5, 5
-BIAS_MIN, BIAS_MAX = -5, 5
+from settings import (
+    WEIGHT, BIAS
+)
 
 
 class Neuron:
@@ -28,10 +29,10 @@ class Neuron:
         for i in range(len(self.weights)):
             if random.random() < mutation_rate:
                 self.weights[i] += random.uniform(-mutation_strength, mutation_strength)
-                self.weights[i] = max(WEIGHT_MIN, min(WEIGHT_MAX, self.weights[i]))
+                self.weights[i] = max(-WEIGHT, min(WEIGHT, self.weights[i]))
         if random.random() < mutation_rate:
             self.bias += random.uniform(-mutation_strength, mutation_strength)
-            self.bias = max(BIAS_MIN, min(BIAS_MAX, self.bias))
+            self.bias = max(-BIAS, min(BIAS, self.bias))
 
     def get_data(self):
         return {"weights": self.weights, "bias": self.bias}

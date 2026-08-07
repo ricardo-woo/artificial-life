@@ -1,16 +1,15 @@
 import pygame
 
-from settings import WIDTH, HEIGHT
+from settings import WIDTH, HEIGHT, DEFAULT_ZOOM, ZOOM_FACTOR, MAX_ZOOM, MIN_ZOOM
 
 
 class Camera:
 
     def __init__(self):
-        # World coordinates of the camera's top-left corner
         self.x = 0
         self.y = 0
 
-        self.zoom = 1.0
+        self.zoom = DEFAULT_ZOOM
 
         self.dragging = False
         self.last_mouse_pos = None
@@ -78,10 +77,10 @@ class Camera:
 
     def zoom_in(self):
 
-        self.zoom *= 1.1
-        self.zoom = min(self.zoom, 100)
+        self.zoom *= ZOOM_FACTOR
+        self.zoom = min(self.zoom, MAX_ZOOM)
 
     def zoom_out(self):
 
-        self.zoom /= 1.1
-        self.zoom = max(self.zoom, 0.1)
+        self.zoom /= ZOOM_FACTOR
+        self.zoom = max(self.zoom, MIN_ZOOM)

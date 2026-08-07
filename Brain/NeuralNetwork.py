@@ -1,9 +1,10 @@
 from Brain.Neuron import Neuron
-
+from settings import (
+    INPUTS, OUTPUTS, HIDDEN
+)
 
 class NeuralNetwork:
     def __init__(self):
-        inputs = 7
         # input[0] = energy
         # input[1] = food detected
         # input[2] = distance to closest food
@@ -12,15 +13,12 @@ class NeuralNetwork:
         # input[5] = time since food visible
         # input[6] = wandering noise
 
-        hidden = 5
-
-        outputs = 2
         # output[0] = angle change
         # output[1] = forward
 
-        self.hidden_layer = [Neuron(inputs) for _ in range(hidden)]
+        self.hidden_layer = [Neuron(INPUTS) for _ in range(HIDDEN)]
 
-        self.output_layer = [Neuron(hidden) for _ in range(outputs)]
+        self.output_layer = [Neuron(HIDDEN) for _ in range(OUTPUTS)]
 
     def predict(self, inputs):
 

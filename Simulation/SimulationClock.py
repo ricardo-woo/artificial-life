@@ -1,11 +1,11 @@
-from settings import FPS
+from settings import FPS, DEFAULT_SIMULATION_SPEED
 
 
 class SimulationClock:
 
     def __init__(self):
         self.simulation_fps = FPS
-        self.speed = 20
+        self.speed = DEFAULT_SIMULATION_SPEED
         self.time = 0.0
 
     def update(self):

@@ -1,10 +1,7 @@
 import random
 from organism import Organism
 from Brain.Genome import Genome
-from settings import WORLD_WIDTH, WORLD_HEIGHT
-
-POPULATION_SIZE = 100
-PARENT_COUNT = 5
+from settings import WORLD_WIDTH, WORLD_HEIGHT, POPULATION_SIZE, PARENT_COUNT
 
 
 class Population:

@@ -1,23 +1,12 @@
 import random
 
 from Brain.NeuralNetwork import NeuralNetwork
-
-# SPEED
-MIN_SPEED = 0.1
-MAX_SPEED = 10
-
-# VISION
-MIN_VISION = 80
-MAX_VISION = 500
-
-# RADIUS
-MIN_RADIUS = 10
-MAX_RADIUS = 15
-
-# TURN SPEED
-MIN_TURN_SPEED = 0.01
-MAX_TURN_SPEED = 2
-
+from settings import (
+    MIN_SPEED, MAX_SPEED, MIN_VISION, MAX_VISION,
+    MAX_RADIUS, MIN_RADIUS, MAX_TURN_SPEED, MIN_TURN_SPEED,
+    MUTATE_RADIUS_STEP, MUTATE_SPEED_STEP, MUTATE_TURN_SPEED_STEP,
+    MUTATE_VISION_STEP
+)
 
 class Genome:
     def __init__(self):
@@ -41,16 +30,16 @@ class Genome:
         return child
 
     def mutate(self):
-        self.speed += random.uniform(-0.1, 0.1)
+        self.speed += random.uniform(-MUTATE_SPEED_STEP, MUTATE_SPEED_STEP)
         self.speed = max(MIN_SPEED, min(MAX_SPEED, self.speed))
 
-        self.vision += random.uniform(-5, 5)
+        self.vision += random.uniform(-MUTATE_VISION_STEP, MUTATE_VISION_STEP)
         self.vision = max(MIN_VISION, min(MAX_VISION, self.vision))
 
-        self.radius += random.uniform(-0.5, 0.5)
+        self.radius += random.uniform(-MUTATE_RADIUS_STEP, MUTATE_RADIUS_STEP)
         self.radius = max(MIN_RADIUS, min(MAX_RADIUS, self.radius))
 
-        self.max_turn_speed += random.uniform(-0.05, 0.05)
+        self.max_turn_speed += random.uniform(-MUTATE_TURN_SPEED_STEP, MUTATE_TURN_SPEED_STEP)
         self.max_turn_speed = max(
             MIN_TURN_SPEED, min(MAX_TURN_SPEED, self.max_turn_speed)
         )
