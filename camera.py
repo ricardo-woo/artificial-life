@@ -79,9 +79,9 @@ class Camera:
     def zoom_in(self):
 
         self.zoom *= 1.1
-        self.zoom = min(self.zoom, 5.0)
+        self.zoom = min(self.zoom, 100)
 
     def zoom_out(self):
 
         self.zoom /= 1.1
-        self.zoom = max(self.zoom, 0.2)
+        self.zoom = max(self.zoom, 0.1)
