@@ -61,7 +61,7 @@ The goal is not to explicitly program the organisms to find food, but to create 
 
 The simulation records each generation to CSV so changes in fitness, speed, vision, age, and food consumption can be analyzed over time.
 
-Some behaviors that have emerged or are currently being investigated include:
+Some behaviors that have emerged:
 * Food-seeking
 * Energy conservation
 * Movement strategies
