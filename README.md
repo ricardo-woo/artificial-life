@@ -1,6 +1,6 @@
 # Artificial Life
 
-An evolutionary artificial-life simulation built with Python and Pygame.
+An evolutionary artificial life simulation built with Python and Pygame.
 
 The Organisms live in a 2D world, search for food, manage their energy, and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
 
