@@ -3,15 +3,16 @@ from Brain.Neuron import Neuron
 
 class NeuralNetwork:
     def __init__(self):
-        inputs = 6
+        inputs = 7
         # input[0] = energy
         # input[1] = food detected
         # input[2] = distance to closest food
         # input[3] = sin(angle to closest food)
         # input[4] = cos(angle to closest food)
         # input[5] = time since food visible
+        # input[6] = wandering noise
 
-        hidden = 7
+        hidden = 5
 
         outputs = 2
         # output[0] = angle change

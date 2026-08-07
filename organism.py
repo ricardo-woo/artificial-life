@@ -3,6 +3,7 @@ import math
 import random
 
 from settings import WORLD_WIDTH, WORLD_HEIGHT
+from noise import OU_Noise
 
 # Below this ACTUAL velocity (world units per simulated second), the
 # organism counts as idle. This is deliberately based on measured
@@ -53,6 +54,9 @@ class Organism:
         self.max_turn_speed = genome.max_turn_speed
         self.vision = genome.vision
 
+        # Exploration
+        self.wandering_noise = OU_Noise(mu=0.0, theta=0.5, sigma=0.8)
+        self.current_noise = 0
         # Position
         self.x = x
         self.y = y
@@ -85,6 +89,8 @@ class Organism:
         self.energy -= (self.vision * 0.0005) * dt
         self.energy -= self.radius * 0.001 * dt
 
+        self.current_noise = self.wandering_noise.step(dt)
+
         inputs = self.get_brain_inputs(foods)
         outputs = self.brain.predict(inputs)
 
@@ -106,10 +112,6 @@ class Organism:
         frame_distance = math.hypot(self.x - old_x, self.y - old_y)
         self.distance_traveled += frame_distance
 
-        # Idle tax: loitering drains extra energy instead of being free.
-        # Based on real measured velocity (see IDLE_VELOCITY_THRESHOLD),
-        # so it can't be dodged by evolving a low genome speed while
-        # keeping the brain's movement output high.
         velocity = frame_distance / dt if dt > 0 else 0
 
         if velocity < IDLE_VELOCITY_THRESHOLD:
@@ -147,13 +149,22 @@ class Organism:
                 math.sin(angle_difference),
                 math.cos(angle_difference),
                 min(self.time_since_food / 100, 1),
+                self.current_noise,
             ]
 
         else:
             return self.no_food_in_vision()
 
     def no_food_in_vision(self):
-        return [self.energy / 100, 0, 1, 0, 0, min(self.time_since_food / 100, 1)]
+        return [
+            self.energy / 100,
+            0,
+            1,
+            0,
+            0,
+            min(self.time_since_food / 100, 1),
+            self.current_noise,
+        ]
 
     # FOOD
 
