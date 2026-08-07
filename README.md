@@ -4,7 +4,7 @@ An evolutionary artificial-life simulation built with Python and Pygame.
 
 Organisms live in a 2D world, search for food, manage their energy, and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
 
-![Simulation](<img width="594" height="594" alt="Image" src="https://github.com/user-attachments/assets/f3f3b360-8f0e-46f9-98be-684a4b9b3d16" />)
+![Simulation](assets/simulation_ss.png)
 
 ## How it works
 
