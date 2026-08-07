@@ -64,16 +64,7 @@ Each organism has a small neural network that receives information about its env
 * Turn
 * Movement
 
-The neural network's weights and biases are inherited and mutated between generations, allowing behavioral strategies to evolve over time.
-
 ![Neural Network Architecture](assets/neural_network.svg)
-
-## Running
-
-```bash
-pip install pygame
-python main.py
-```
 
 ## Project Status
 
