@@ -60,6 +60,27 @@ information and produces movement decisions.
 
 ![Neural Network Architecture](assets/neural_network.svg)
 
+## Neural Network
+
+Each organism has a small neural network that receives information about its environment and produces movement decisions.
+
+### Inputs
+
+* Energy
+* Food detected
+* Distance to food
+* Direction to food
+* Time since food was detected
+* Exploration signal from an Ornstein-Uhlenbeck process
+
+### Outputs
+
+* Turn
+* Movement
+
+The neural network's weights and biases are inherited and mutated between generations, allowing behavioral strategies to evolve over time.
+
+
 ## Project Status
 
 This is an ongoing experiment. The simulation and evolutionary system are still being developed and tested.
