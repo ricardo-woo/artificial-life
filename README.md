@@ -30,10 +30,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### Configuration
-
-Simulation parameters (population size, mutation rate, generations per run, etc.) can be adjusted in `config.py`.
-
 ## How it works
 
 Each organism has:
