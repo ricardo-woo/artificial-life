@@ -4,12 +4,39 @@ An evolutionary artificial-life simulation built with Python and Pygame.
 
 Organisms live in a 2D world, search for food, manage their energy, and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
 
+This project started as a way for me to learn about neural networks and evolutionary algorithms hands-on, so expect some rough edges. Feedback and PRs on the network architecture, mutation logic, or fitness function are very welcome.
+
 ![Simulation](assets/simulation_ss.png)
+
+## Getting Started
+
+### Requirements
+- Python 3.x
+- Pygame
+
+### Installation
+
+Clone the repo and install dependencies:
+
+```bash
+git clone https://github.com/your-username/artificial-life.git
+cd artificial-life
+pip install -r requirements.txt
+```
+
+### Running the simulation
+
+```bash
+python main.py
+```
+
+### Configuration
+
+Simulation parameters (population size, mutation rate, generations per run, etc.) can be adjusted in `config.py`.
 
 ## How it works
 
 Each organism has:
-
 * Energy
 * Age
 * Speed
@@ -39,7 +66,6 @@ The goal is not to explicitly program the organisms to find food, but to create 
 The simulation records each generation to CSV so changes in fitness, speed, vision, age, and food consumption can be analyzed over time.
 
 Some behaviors that have emerged or are currently being investigated include:
-
 * Food-seeking
 * Energy conservation
 * Movement strategies
@@ -51,7 +77,6 @@ Some behaviors that have emerged or are currently being investigated include:
 Each organism has a small neural network that receives information about its environment and produces movement decisions.
 
 ### Inputs
-
 * Energy
 * Food detected
 * Distance to food
@@ -60,7 +85,6 @@ Each organism has a small neural network that receives information about its env
 * Exploration signal from an Ornstein-Uhlenbeck process
 
 ### Outputs
-
 * Turn
 * Movement
 
