@@ -11,11 +11,9 @@ assignees: ''
 
 ## Bug
 
-<!-- What went wrong? -->
 
 ## Expected Behavior
 
-<!-- What did you expect to happen? -->
 
 ## Steps to Reproduce
 
@@ -24,5 +22,3 @@ assignees: ''
 3.
 
 ## Additional Information
-
-<!-- Error messages, screenshots, logs, or anything else that may help. -->
