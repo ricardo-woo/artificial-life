@@ -88,8 +88,6 @@ while running:
                     waiting_for_next_gen = False
                     generation_simulation_time = 0
                     food_respawn_timer = 0
-                    is_fast_forwarding = False
-                    simulation_clock.speed = 1
             else:
                 if event.key == KEY_PAUSE_SELECTION:
                     selected_organism = None
@@ -143,8 +141,6 @@ while running:
             waiting_for_next_gen = False
             generation_simulation_time = 0
             food_respawn_timer = 0
-            is_fast_forwarding = False
-            simulation_clock.speed = 1
 
     if not waiting_for_next_gen:
         dt = simulation_clock.update()
@@ -189,8 +185,6 @@ while running:
             generation_end_time = time.time()
             selected_organism = None
             camera.following = None
-            is_fast_forwarding = False
-            simulation_clock.speed = 1
             save_manager.log_generation_to_csv(
                 generation, generation_simulation_time, organisms
             )
