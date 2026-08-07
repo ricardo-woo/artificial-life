@@ -24,6 +24,12 @@ cd artificial-life
 pip install -r requirements.txt
 ```
 
+### Configuration
+
+The simulation's main parameters can be configured in `settings.py`.
+
+Adjusting `settings.py` allows experiments to be run without changing the core simulation code.
+
 ### Running the simulation
 
 ```bash
