@@ -77,6 +77,8 @@ Each organism has a small neural network that receives information about its env
 * Food detected
 * Distance to food
 * Direction to food
+** Sine
+** Cosine
 * Time since food was detected
 * Exploration signal from an Ornstein-Uhlenbeck process
 
