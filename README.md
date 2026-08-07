@@ -49,10 +49,14 @@ Organisms that survive longer and find more food have higher fitness and are mor
 
 Physical traits and neural-network parameters mutate between generations.
 
-The current fitness function rewards both finding food and surviving:
+The fitness function currently rewards food consumption, survival, and movement:
 
 ```python
-fitness = food_eaten * 10 + min(age, 500) / 100
+fitness = (
+            self.food_eaten * FITNESS_FOOD_WEIGHT
+            + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
+            + self.distance_traveled * FITNESS_DISTANCE_WEIGHT
+        )
 ```
 
 The goal is not to explicitly program the organisms to find food, but to create conditions where useful behavior can **emerge through evolution**.
