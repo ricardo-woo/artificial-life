@@ -14,7 +14,11 @@ from ui import UIManager
 from SaveManager import SaveManager
 from Simulation.SimulationClock import SimulationClock
 
-from settings import WIDTH, HEIGHT, FPS, WORLD_WIDTH, WORLD_HEIGHT
+from settings import (
+    WIDTH, HEIGHT, FPS, WORLD_WIDTH, WORLD_HEIGHT, BACKGROUND_COLOR,
+    SAVE_INTERVAL_MS, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_RESPAWN_INTERVAL,
+    FOOD_ENERGY_VAL, MAX_ENERGY, KEY_FAST_FORWARD, KEY_FOLLOW_ORGANISM,
+    KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION)
 
 pygame.init()
 
@@ -26,7 +30,6 @@ clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 24)
 
-# Initialize systems
 save_manager = SaveManager()
 save_timer = 0
 population = Population()
@@ -52,8 +55,6 @@ else:
 
     organisms = population.create_initial_population(organisms)
 
-FOOD_COUNT = 350
-FOOD_RESPAWN_INTERVAL = 20
 food_respawn_timer = 0
 foods = []
 
@@ -67,7 +68,7 @@ running = True
 while running:
     save_timer += clock.get_time()
 
-    if save_timer > 60000:
+    if save_timer > SAVE_INTERVAL_MS:
         save_manager.save_game(organisms, generation, generation_simulation_time)
         save_timer = 0
 
@@ -79,7 +80,7 @@ while running:
 
         elif event.type == pygame.KEYDOWN:
             if waiting_for_next_gen:
-                if event.key == pygame.K_RETURN:
+                if event.key == KEY_NEXT_GENERATION:
                     # Proceed to next generation immediately on ENTER
                     organisms = population.next_generation(organisms)
                     generation += 1
@@ -96,17 +97,17 @@ while running:
                     food_respawn_timer = 0
                     simulation_clock.speed = 1
             else:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == KEY_PAUSE_SELECTION:
                     selected_organism = None
                     camera.following = None
 
-                elif event.key == pygame.K_f:
+                elif event.key == KEY_FOLLOW_ORGANISM:
                     if selected_organism is not None:
                         camera.following = selected_organism
-                elif event.key == pygame.K_SPACE:
-                    simulation_clock.speed = 20
+                elif event.key == KEY_FAST_FORWARD:
+                    simulation_clock.speed = FAST_FORWARD_SPEED
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_SPACE:
+            if event.key == KEY_FAST_FORWARD:
                 simulation_clock.speed = 1
         elif not waiting_for_next_gen:
             # Normal mouse events for camera/selection
@@ -132,7 +133,6 @@ while running:
                 elif event.y < 0:
                     camera.zoom_out()
 
-    # Check if 10 seconds have passed while waiting on the leaderboard
     if waiting_for_next_gen:
         if time.time() - generation_end_time >= 0:
             organisms = population.next_generation(organisms)
@@ -154,7 +154,6 @@ while running:
     else:
         dt = 0
 
-    # UPDATES (Only run if we aren't waiting on the leaderboard screen)
     if not waiting_for_next_gen:
         for organism in organisms:
             if not organism.is_dead():
@@ -163,7 +162,7 @@ while running:
             for food in foods[:]:
                 if organism.eat(food):
                     organism.food_eaten += 1
-                    organism.energy = min(100, organism.energy + 50)
+                    organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
                     organism.time_since_food = 0
                     foods.remove(food)
                     break
@@ -197,7 +196,7 @@ while running:
     current_generation_time = generation_simulation_time
 
     # RENDERING
-    screen.fill((20, 20, 20))
+    screen.fill(BACKGROUND_COLOR)
 
     ui_manager.draw_world_border(screen, camera, WORLD_WIDTH, WORLD_HEIGHT)
 

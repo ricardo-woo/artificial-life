@@ -2,23 +2,13 @@ import pygame
 import math
 import random
 
-from settings import WORLD_WIDTH, WORLD_HEIGHT
+from settings import (
+    WORLD_WIDTH, WORLD_HEIGHT, MAX_ENERGY, BASE_ENERGY_DECAY,
+    VISION_ENERGY_COST, RADIUS_ENERGY_COST, MOVEMENT_ENERGY_COST,
+    IDLE_ENERGY_TAX, IDLE_VELOCITY_TRESHOLD, FITNESS_AGE_CAP,
+    FITNESS_AGE_DIVISOR, FITNESS_DISTANCE_WEIGHT, FITNESS_FOOD_WEIGHT,
+    NOISE_MU, NOISE_SIGMA, NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING)
 from noise import OU_Noise
-
-# Below this ACTUAL velocity (world units per simulated second), the
-# organism counts as idle. This is deliberately based on measured
-# displacement, not the raw brain "movement" output — checking the raw
-# output let a genome evolve a tiny `speed` so a movement output near 1.0
-# still barely moves it, dodging the tax entirely. Tying it to real
-# velocity (speed * movement) closes that loophole: a slow genome must
-# commit to near-max output to clear the bar, and can't fake it.
-IDLE_VELOCITY_THRESHOLD = 0.2
-
-# Extra energy drained per second while idle, on top of normal upkeep.
-IDLE_ENERGY_TAX = 0.05
-
-# Fitness points earned per world-unit of path length traveled.
-DISTANCE_FITNESS_WEIGHT = 0.02
 
 
 class Organism:
@@ -39,9 +29,9 @@ class Organism:
     @property
     def fitness(self):
         return (
-            self.food_eaten * 10
-            + min(self.age, 500) / 100
-            + self.distance_traveled * DISTANCE_FITNESS_WEIGHT
+            self.food_eaten * FITNESS_FOOD_WEIGHT
+            + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
+            + self.distance_traveled * FITNESS_DISTANCE_WEIGHT
         )
 
     def __init__(self, x, y, genome):
@@ -55,7 +45,7 @@ class Organism:
         self.vision = genome.vision
 
         # Exploration
-        self.wandering_noise = OU_Noise(mu=0.0, theta=0.5, sigma=0.8)
+        self.wandering_noise = OU_Noise(mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA)
         self.current_noise = 0
         # Position
         self.x = x
@@ -66,7 +56,7 @@ class Organism:
         self.age = 0
 
         # Survival
-        self.energy = 100
+        self.energy = MAX_ENERGY
         self.time_since_food = 0
 
         # Exploration tracking
@@ -85,9 +75,9 @@ class Organism:
         self.age += dt
         self.time_since_food += dt
 
-        self.energy -= 0.1 * dt
-        self.energy -= (self.vision * 0.0005) * dt
-        self.energy -= self.radius * 0.001 * dt
+        self.energy -= BASE_ENERGY_DECAY * dt
+        self.energy -= (self.vision * VISION_ENERGY_COST) * dt
+        self.energy -= self.radius * RADIUS_ENERGY_COST * dt
 
         self.current_noise = self.wandering_noise.step(dt)
 
@@ -97,7 +87,7 @@ class Organism:
         turn = outputs[0]
         movement = (outputs[1] + 1) / 2
 
-        self.energy -= (movement * self.speed * 0.01) * dt
+        self.energy -= (movement * self.speed * MOVEMENT_ENERGY_COST) * dt
 
         self.angle += turn * self.max_turn_speed * dt
         self.angle %= math.tau
@@ -114,7 +104,7 @@ class Organism:
 
         velocity = frame_distance / dt if dt > 0 else 0
 
-        if velocity < IDLE_VELOCITY_THRESHOLD:
+        if velocity < IDLE_VELOCITY_TRESHOLD:
             self.idle_time += dt
             self.energy -= IDLE_ENERGY_TAX * dt
         else:
@@ -143,7 +133,7 @@ class Organism:
             angle_difference = angle_to_food - self.angle
 
             return [
-                self.energy / 100,
+                self.energy / MAX_ENERGY,
                 1,
                 closest_distance / self.vision,
                 math.sin(angle_difference),
@@ -157,7 +147,7 @@ class Organism:
 
     def no_food_in_vision(self):
         return [
-            self.energy / 100,
+            self.energy / MAX_ENERGY,
             0,
             1,
             0,
@@ -190,7 +180,7 @@ class Organism:
 
         distance = math.sqrt((self.x - x) ** 2 + (self.y - y) ** 2)
 
-        return distance <= self.radius + 5
+        return distance <= self.radius + SELECTION_CLICK_PADDING
 
     def draw(self, screen, camera):
 
@@ -198,4 +188,4 @@ class Organism:
 
         radius = max(1, int(self.radius * camera.zoom))
 
-        pygame.draw.circle(screen, (100, 220, 100), (screen_x, screen_y), radius)
+        pygame.draw.circle(screen, ORGANISM_COLOR, (screen_x, screen_y), radius)

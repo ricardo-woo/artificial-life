@@ -1,6 +1,6 @@
 import pygame
 
-from settings import WORLD_WIDTH, WORLD_HEIGHT
+from settings import FOOD_COLOR,FOOD_RADIUS
 
 
 class Food:
@@ -10,7 +10,7 @@ class Food:
         self.x = x
         self.y = y
 
-        self.radius = 4
+        self.radius = FOOD_RADIUS
 
     def draw(self, screen, camera):
 
@@ -26,7 +26,7 @@ class Food:
 
         pygame.draw.circle(
             screen,
-            (220, 200, 80),
+            FOOD_COLOR,
             (screen_x, screen_y),
             radius
         )
