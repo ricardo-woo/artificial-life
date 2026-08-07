@@ -19,7 +19,7 @@ This project started as a way for me to learn about neural networks, so expect s
 Clone the repo and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/artificial-life.git
+git clone https://github.com/ricardo-woo/artificial-life.git
 cd artificial-life
 pip install -r requirements.txt
 ```
