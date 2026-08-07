@@ -19,9 +19,7 @@ Thanks for your interest in contributing!
 
 ## Code Guidelines
 
-* Keep changes focused.
 * Keep `main.py` and other modules organized.
-* Avoid unnecessary dependencies.
 * If changing evolutionary mechanics, briefly explain the reasoning and expected effect.
 
 ## Pull Requests
