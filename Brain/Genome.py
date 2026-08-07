@@ -4,7 +4,7 @@ from Brain.NeuralNetwork import NeuralNetwork
 
 # SPEED
 MIN_SPEED = 0.1
-MAX_SPEED = 4
+MAX_SPEED = 10
 
 # VISION
 MIN_VISION = 80
