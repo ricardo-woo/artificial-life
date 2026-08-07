@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing!
+Thanks for your interest in contributing to Artificial Life!
 
 ## Getting Started
 
@@ -11,16 +11,27 @@ Thanks for your interest in contributing!
 
 ## Branch & Settings Guidelines
 
-* **Do not commit local test values to `settings.py`.** If you adjusted constants for personal testing, revert them before pushing.
+* **Do not commit local test values to `settings.py`.** If you adjusted constants (e.g., speed, mutation rates, UI flags) for personal testing, revert them before pushing.
 * PRs that modify `settings.py` will only be approved if they:
 
   1. Add new feature configuration constants required by new code.
   2. Represent an agreed-upon balance pass discussed in an issue first.
 
-## Code Guidelines
+### Local Settings
 
-* Keep `main.py` and other modules organized.
-* If changing evolutionary mechanics, briefly explain the reasoning and expected effect.
+If you frequently experiment with values in `settings.py`, you can tell Git to locally ignore changes to the file:
+
+```bash
+git update-index --assume-unchanged settings.py
+```
+
+If you later need to make a legitimate change to `settings.py` that should be committed, re-enable tracking:
+
+```bash
+git update-index --no-assume-unchanged settings.py
+```
+
+This only affects your local Git repository. It does not change the repository or other contributors' settings.
 
 ## Pull Requests
 
