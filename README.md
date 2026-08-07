@@ -11,7 +11,7 @@ This project started as a way for me to learn about neural networks, so expect s
 ## Getting Started
 
 ### Requirements
-- Python 3.x
+- Python 3.10+
 - Pygame
 
 ### Installation
@@ -19,7 +19,7 @@ This project started as a way for me to learn about neural networks, so expect s
 Clone the repo and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/artificial-life.git
+git clone https://github.com/ricardo-woo/artificial-life.git
 cd artificial-life
 pip install -r requirements.txt
 ```
@@ -76,7 +76,8 @@ Each organism has a small neural network that receives information about its env
 * Energy
 * Food detected
 * Distance to food
-* Direction to food
+* Sin(angle to closest food)
+* Cos(angle to closest food)
 * Time since food was detected
 * Exploration signal from an Ornstein-Uhlenbeck process
 
