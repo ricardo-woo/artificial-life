@@ -53,6 +53,13 @@ pip install pygame
 python main.py
 ```
 
+## Neural Network
+
+Each organism has a neural network that receives environmental
+information and produces movement decisions.
+
+![Neural Network Architecture](assets/neural_network.svg)
+
 ## Project Status
 
 This is an ongoing experiment. The simulation and evolutionary system are still being developed and tested.
