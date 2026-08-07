@@ -6,3 +6,7 @@ env/
 # Python Cache
 __pycache__/
 *.pyc
+
+# Simulation Output and Save Data
+save.json
+experiment_log.csv
