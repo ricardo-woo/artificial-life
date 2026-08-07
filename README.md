@@ -66,7 +66,7 @@ Each organism has a small neural network that receives information about its env
 
 The neural network's weights and biases are inherited and mutated between generations, allowing behavioral strategies to evolve over time.
 
-![Neural Network Architecture](assets/neural-network.svg)
+![Neural Network Architecture](assets/neural_network.svg)
 
 ## Running
 
