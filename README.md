@@ -22,22 +22,6 @@ The neural network receives information about the organism's environment and pro
 
 Organisms that survive longer and find more food have higher fitness and are more likely to contribute to the next generation.
 
-```text
-Sensors
-   ↓
-Neural Network
-   ↓
-Movement
-   ↓
-Food / Energy
-   ↓
-Fitness
-   ↓
-Selection + Mutation
-   ↓
-Next Generation
-```
-
 ## Evolution
 
 Physical traits and neural-network parameters mutate between generations.
