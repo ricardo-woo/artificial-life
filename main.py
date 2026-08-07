@@ -14,7 +14,7 @@ from settings import (
     BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL,
     FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
     KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY,
-    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH,
+    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH,
 )
 from Simulation.SimulationClock import SimulationClock
 from ui import UIManager
@@ -43,7 +43,7 @@ is_fast_forwarding = False
 
 organisms = []
 
-if os.path.exists("save.json"):
+if os.path.exists(SAVE_FILE_PATH):
     organisms, generation, generation_simulation_time = save_manager.load_game()
 else:
     generation = 1

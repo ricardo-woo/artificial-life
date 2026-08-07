@@ -106,11 +106,11 @@ class SaveManager:
             "generation_simulation_time": sim_time,
         }
 
-        with open("save.json", "w") as file:
+        with open(SAVE_FILE_PATH, "w") as file:
             json.dump(data, file, indent=JSON_INDENT)
 
     def load_game(self):
-        with open("save.json", "r") as file:
+        with open(SAVE_FILE_PATH, "r") as file:
             data = json.load(file)
 
         generation_simulation_time = data.get("generation_simulation_time", 0)

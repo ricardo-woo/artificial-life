@@ -42,7 +42,7 @@ class Population:
         return children
 
     def create_initial_population(self, organisms):
-        for _ in range(100):
+        for _ in range(POPULATION_SIZE):
             genome = Genome()
             organism = Organism(
                 random.randint(0, WORLD_WIDTH), random.randint(0, WORLD_HEIGHT), genome
