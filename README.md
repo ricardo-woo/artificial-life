@@ -11,7 +11,7 @@ This project started as a way for me to learn about neural networks, so expect s
 ## Getting Started
 
 ### Requirements
-- Python 3.x
+- Python 3.10+
 - Pygame
 
 ### Installation
