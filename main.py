@@ -21,7 +21,7 @@ from ui import UIManager
 
 pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Artificial Life")
 
 clock = pygame.time.Clock()
