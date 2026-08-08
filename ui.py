@@ -164,7 +164,7 @@ class UIManager:
         screen,
         camera,
         selected_organism,
-        foods
+        food_grid
     ):
         if selected_organism is None:
             return
@@ -187,7 +187,7 @@ class UIManager:
         )
 
         brain_inputs = (
-            selected_organism.get_brain_inputs(foods)
+            selected_organism.get_brain_inputs(food_grid)
         )
 
         brain_outputs = (
