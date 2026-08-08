@@ -26,6 +26,9 @@ GENERATION_END_WAIT_TIME = 5 #Set to 0 for auto advance
 POPULATION_SIZE = 300
 PARENT_COUNT = 10
 
+# Bush
+BUSH_COUNT = 100
+
 # Food
 FOOD_COUNT = 600
 FOOD_RESPAWN_INTERVAL = 20
@@ -124,4 +127,4 @@ FLOAT_ROUND_PRECISION = 2
 JSON_INDENT = 4
 
 # Assets
-BUSH_IMAGE = "assets/bush.png"
+BUSH_IMAGE = pygame.image.load("assets/bush.png")
