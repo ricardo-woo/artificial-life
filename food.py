@@ -2,31 +2,28 @@ import pygame
 import random
 import math
 
-from settings import FOOD_COLOR,FOOD_RADIUS, WORLD_HEIGHT, WORLD_WIDTH
+from settings import FOOD_COLOR,FOOD_RADIUS, WORLD_HEIGHT, WORLD_WIDTH, FOOD_BUSH_RADIUS
 
 
 class Food:
 
-    def __init__(self, x, y):
+    def __init__(self, bushes):
+
+        bush = random.choice(bushes)
+        
+        angle = random.uniform(0, math.tau)
+        distance = random.uniform(50,FOOD_BUSH_RADIUS)
+        
+        x = bush.x + math.cos(angle) * distance
+        y = bush.y + math.sin(angle) * distance
+        
+        x = max(0, min(WORLD_WIDTH, x))
+        y = max(0, min(WORLD_HEIGHT, y))
 
         self.x = x
         self.y = y
 
         self.radius = FOOD_RADIUS
-
-    def spawn_near_bush(bushes):
-        bush = random.choice(bushes)
-
-        angle = random.uniform(0, math.tau)
-        distance = random.uniform(40,100)
-
-        x = bush.x + math.cos(angle) * distance
-        y = bush.y + math.sin(angle) * distance
-
-        x = max(0, min(WORLD_WIDTH, x))
-        y = max(0, min(WORLD_HEIGHT, y))
-
-        return Food(x,y)
 
     def draw(self, screen, camera):
 
