@@ -1,6 +1,8 @@
 import pygame
+import random
+import math
 
-from settings import FOOD_COLOR,FOOD_RADIUS
+from settings import FOOD_COLOR,FOOD_RADIUS, WORLD_HEIGHT, WORLD_WIDTH
 
 
 class Food:
@@ -11,6 +13,20 @@ class Food:
         self.y = y
 
         self.radius = FOOD_RADIUS
+
+    def spawn_near_bush(bushes):
+        bush = random.choice(bushes)
+
+        angle = random.uniform(0, math.tau)
+        distance = random.uniform(40,100)
+
+        x = bush.x + math.cos(angle) * distance
+        y = bush.y + math.sin(angle) * distance
+
+        x = max(0, min(WORLD_WIDTH, x))
+        y = max(0, min(WORLD_HEIGHT, y))
+
+        return Food(x,y)
 
     def draw(self, screen, camera):
 
