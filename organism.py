@@ -69,7 +69,7 @@ class Organism:
 
     # UPDATE
 
-    def update(self, foods, dt):
+    def update(self, food_grid, dt):
         self.age += dt
         self.time_since_food += dt
 
@@ -79,7 +79,7 @@ class Organism:
 
         self.current_noise = self.wandering_noise.step(dt)
 
-        inputs = self.get_brain_inputs(foods)
+        inputs = self.get_brain_inputs(food_grid)
         outputs = self.brain.predict(inputs)
 
         turn = outputs[0]
@@ -117,15 +117,16 @@ class Organism:
 
     # SENSORS
 
-    def get_brain_inputs(self, foods):
+    def get_brain_inputs(self, food_grid):
         closest_food = None
         closest_distance = self.vision
 
-        for food in foods:
+        nearby_food = food_grid.query(self.x, self.y, self.vision)
 
-            distance = math.sqrt((self.x - food.x) ** 2 + (self.y - food.y) ** 2)
+        for food in nearby_food:
+            distance = math.hypot(self.x - food.x, self.y - food.y)
 
-            if distance < closest_distance and distance <= self.vision:
+            if distance < closest_distance:
                 closest_distance = distance
                 closest_food = food
 
