@@ -14,14 +14,14 @@ from settings import (
     BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL,
     FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
     KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY,
-    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH,
+    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH, KEY_DEBUG
 )
 from Simulation.SimulationClock import SimulationClock
 from ui import UIManager
 
 pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Artificial Life")
 
 clock = pygame.time.Clock()
@@ -58,6 +58,7 @@ for _ in range(FOOD_COUNT):
 
 selected_organism = None
 running = True
+debug_open = False
 
 while running:
     save_timer += clock.get_time()
@@ -73,6 +74,9 @@ while running:
             running = False
 
         elif event.type == pygame.KEYDOWN:
+
+            if event.key == KEY_DEBUG:
+                debug_open = not debug_open
             if waiting_for_next_gen:
                 if event.key == KEY_NEXT_GENERATION:
                     organisms = population.next_generation(organisms)
@@ -208,6 +212,12 @@ while running:
 
     if waiting_for_next_gen:
         ui_manager.draw_leaderboard(screen, top_organism_snapshot, generation)
+
+    if debug_open:
+        leaderboard_rows = ui_manager.draw_debug(
+            screen, organisms, foods, generation, generation_simulation_time,
+            clock.get_fps()
+        )
 
     pygame.display.flip()
     clock.tick(FPS)
