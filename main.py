@@ -7,6 +7,7 @@ import pygame
 from Brain.Genome import Genome
 from camera import Camera
 from food import Food
+from bush import Bush
 from organism import Organism
 from Population import Population
 from SaveManager import SaveManager
@@ -14,7 +15,7 @@ from spatialgrid import SpatialGrid
 from settings import (
     BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL, SPATIAL_CELL_SIZE,
     FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
-    KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY,
+    KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY, BUSH_COUNT,
     SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH, KEY_DEBUG
 )
 from Simulation.SimulationClock import SimulationClock
@@ -39,6 +40,7 @@ waiting_for_next_gen = False
 top_organism_snapshot = []
 generation_end_time = 0
 food_grid = SpatialGrid(SPATIAL_CELL_SIZE)
+bush_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
 simulation_clock = SimulationClock()
 generation_simulation_time = 0
@@ -54,15 +56,25 @@ else:
 
 food_respawn_timer = 0
 foods = []
+bushes = []
+
+for _ in range(BUSH_COUNT):
+    bush = Bush(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
+    bushes.append(bush)
+
+bush_grid.clear()
 
 for _ in range(FOOD_COUNT):
-    food = Food(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
+    food = Food(bushes)
     foods.append(food)
 
 food_grid.clear()
 
 for food in foods:
     food_grid.insert(food, food.x, food.y)
+
+for bush in bushes:
+    bush_grid.insert(bush, bush.x, bush.y)
 
 selected_organism = None
 running = True
@@ -93,10 +105,7 @@ while running:
                     food_grid.clear()
 
                     for _ in range(FOOD_COUNT):
-                        new_food = Food(
-                                random.uniform(0, WORLD_WIDTH),
-                                random.uniform(0, WORLD_HEIGHT),
-                            )
+                        new_food = Food(bushes)
                         foods.append(new_food)
                         food_grid.insert(new_food, new_food.x, new_food.y)
 
@@ -150,9 +159,7 @@ while running:
             foods = []
             food_grid.clear()
             for _ in range(FOOD_COUNT):
-                new_food = Food(
-                        random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT)
-                    )
+                new_food = Food(bushes)
                 foods.append( new_food)
                 food_grid.insert(new_food, new_food.x, new_food.y)
             waiting_for_next_gen = False
@@ -191,7 +198,7 @@ while running:
 
         food_respawn_timer += dt
         while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:
-            new_food=Food(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
+            new_food=Food(bushes)
             foods.append(new_food)
             food_grid.insert(new_food, new_food.x,new_food.y)
             food_respawn_timer -= FOOD_RESPAWN_INTERVAL
@@ -224,6 +231,9 @@ while running:
 
     for food in foods:
         food.draw(screen, camera)
+
+    for bush in bushes:
+        bush.draw(screen, camera)
 
     for organism in organisms:
         organism.draw(screen, camera)
