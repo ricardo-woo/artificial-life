@@ -19,6 +19,15 @@ class SpatialGrid:
 
         self.cells[cell].append(target)
 
+    def remove(self, target,x,y):
+        cell = self.get_cell(x,y)
+
+        if cell in self.cells:
+            self.cells[cell].remove(target)
+
+            if not self.cells[cell]:
+                del self.cells[cell]
+
     def query(self, x, y, radius):
         min_cell_x = int((x-radius) // self.cell_size)
         max_cell_x = int((x+radius) // self.cell_size)
