@@ -122,3 +122,6 @@ SAVE_INTERVAL_MS = 60000    # Auto-save every 60 seconds real time
 
 FLOAT_ROUND_PRECISION = 2
 JSON_INDENT = 4
+
+# Assets
+BUSH_IMAGE = "assets/bush.png"
