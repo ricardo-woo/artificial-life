@@ -6,8 +6,8 @@ from settings import (
     WORLD_WIDTH, WORLD_HEIGHT, MAX_ENERGY, BASE_ENERGY_DECAY,
     VISION_ENERGY_COST, RADIUS_ENERGY_COST, MOVEMENT_ENERGY_COST,
     IDLE_ENERGY_TAX, IDLE_VELOCITY_TRESHOLD, FITNESS_AGE_CAP,
-    FITNESS_AGE_DIVISOR, FITNESS_DISTANCE_WEIGHT, FITNESS_FOOD_WEIGHT,
-    NOISE_MU, NOISE_SIGMA, NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING)
+    FITNESS_AGE_DIVISOR, FITNESS_FOOD_WEIGHT, NOISE_MU, NOISE_SIGMA,
+    NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING)
 from noise import OU_Noise
 
 
@@ -22,7 +22,6 @@ class Organism:
             "age": self.age,
             "food_eaten": self.food_eaten,
             "angle": self.angle,
-            "distance_traveled": self.distance_traveled,
             "genome": self.genome.get_data(),
         }
 
@@ -31,7 +30,6 @@ class Organism:
         return (
             self.food_eaten * FITNESS_FOOD_WEIGHT
             + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
-            + self.distance_traveled * FITNESS_DISTANCE_WEIGHT
         )
 
     def __init__(self, x, y, genome):
@@ -60,7 +58,6 @@ class Organism:
         self.time_since_food = 0
 
         # Exploration tracking
-        self.distance_traveled = 0
         self.idle_time = 0
 
         # Movement
@@ -100,7 +97,7 @@ class Organism:
         self.keep_inside_world()
 
         frame_distance = math.hypot(self.x - old_x, self.y - old_y)
-        self.distance_traveled += frame_distance
+
 
         velocity = frame_distance / dt if dt > 0 else 0
 

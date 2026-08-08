@@ -61,7 +61,6 @@ The fitness function currently rewards food consumption, survival, and movement:
 fitness = (
             self.food_eaten * FITNESS_FOOD_WEIGHT
             + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
-            + self.distance_traveled * FITNESS_DISTANCE_WEIGHT
         )
 ```
 

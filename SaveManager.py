@@ -126,7 +126,6 @@ class SaveManager:
             organism.age = organism_data["age"]
             organism.food_eaten = organism_data["food_eaten"]
             organism.angle = organism_data["angle"]
-            organism.distance_traveled = organism_data.get("distance_traveled", 0)
 
             organisms.append(organism)
 
