@@ -69,7 +69,7 @@ class Organism:
 
     # UPDATE
 
-    def update(self, foods, dt):
+    def update(self, food_grid, dt):
         self.age += dt
         self.time_since_food += dt
 
@@ -79,7 +79,7 @@ class Organism:
 
         self.current_noise = self.wandering_noise.step(dt)
 
-        inputs = self.get_brain_inputs(foods)
+        inputs = self.get_brain_inputs(food_grid)
         outputs = self.brain.predict(inputs)
 
         turn = outputs[0]
