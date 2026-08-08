@@ -51,45 +51,6 @@ class UIManager:
             BORDER_THICKNESS
         )
 
-    def draw_generation_counter(
-        self,
-        screen,
-        generation_num,
-        generation_time
-    ):
-        gen_text = self.font.render(
-            f"Generation: {generation_num}",
-            True,
-            COLOR_TEXT_PRIMARY
-        )
-
-        time_text = self.font.render(
-            f"Time: {generation_time:.1f}s",
-            True,
-            COLOR_TEXT_SECONDARY
-        )
-
-        center_x = screen.get_width() // 2
-
-        gen_y = int(screen.get_height() * 0.02)
-        time_y = int(screen.get_height() * 0.05)
-
-        screen.blit(
-            gen_text,
-            (
-                center_x - gen_text.get_width() // 2,
-                gen_y
-            )
-        )
-
-        screen.blit(
-            time_text,
-            (
-                center_x - time_text.get_width() // 2,
-                time_y
-            )
-        )
-
     def draw_leaderboard(
         self,
         screen,
