@@ -10,8 +10,9 @@ from food import Food
 from organism import Organism
 from Population import Population
 from SaveManager import SaveManager
+from spatialgrid import SpatialGrid
 from settings import (
-    BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL,
+    BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL, SPATIAL_CELL_SIZE,
     FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
     KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY,
     SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH, KEY_DEBUG
@@ -27,6 +28,7 @@ pygame.display.set_caption("Artificial Life")
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 24)
 
+
 save_manager = SaveManager()
 save_timer = 0
 population = Population()
@@ -36,6 +38,7 @@ generation = 1
 waiting_for_next_gen = False
 top_organism_snapshot = []
 generation_end_time = 0
+food_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
 simulation_clock = SimulationClock()
 generation_simulation_time = 0
@@ -55,6 +58,11 @@ foods = []
 for _ in range(FOOD_COUNT):
     food = Food(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
     foods.append(food)
+
+food_grid.clear()
+
+for food in foods:
+    food_grid.insert(food, food.x, food.y)
 
 selected_organism = None
 running = True
