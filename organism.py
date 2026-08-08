@@ -4,10 +4,11 @@ import random
 
 from settings import (
     WORLD_WIDTH, WORLD_HEIGHT, MAX_ENERGY, BASE_ENERGY_DECAY,
-    VISION_ENERGY_COST, RADIUS_ENERGY_COST, MOVEMENT_ENERGY_COST,
+    VISION_ENERGY_COST, RADIUS_ENERGY_COST, WALK_RUN_TRANSITION,
     IDLE_ENERGY_TAX, IDLE_VELOCITY_TRESHOLD, FITNESS_AGE_CAP,
     FITNESS_AGE_DIVISOR, FITNESS_FOOD_WEIGHT, NOISE_MU, NOISE_SIGMA,
-    NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING)
+    NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING,
+    WALK_SPEED_COEFFICIENT, RUN_SPEED_COEFFICIENT)
 from noise import OU_Noise
 
 
@@ -84,7 +85,14 @@ class Organism:
         turn = outputs[0]
         movement = (outputs[1] + 1) / 2
 
-        self.energy -= (movement * self.speed * MOVEMENT_ENERGY_COST) * dt
+        actual_speed = movement * self.speed
+
+        if actual_speed >= WALK_RUN_TRANSITION:
+            movement_cost = RUN_SPEED_COEFFICIENT * actual_speed * dt
+        else:
+            movement_cost = WALK_SPEED_COEFFICIENT * actual_speed * dt
+
+        self.energy -= movement_cost
 
         self.angle += turn * self.max_turn_speed * dt
         self.angle %= math.tau
