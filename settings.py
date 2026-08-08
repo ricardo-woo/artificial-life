@@ -128,3 +128,4 @@ JSON_INDENT = 4
 
 # Assets
 BUSH_IMAGE = pygame.image.load("assets/bush.png")
+FOOD_BUSH_RADIUS = 150
