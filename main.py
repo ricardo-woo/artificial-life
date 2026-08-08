@@ -148,6 +148,7 @@ while running:
             organisms = population.next_generation(organisms)
             generation += 1
             foods = []
+            food_grid.clear()
             for _ in range(FOOD_COUNT):
                 new_food = Food(
                         random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT)
