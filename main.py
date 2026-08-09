@@ -191,9 +191,12 @@ while running:
     if not waiting_for_next_gen:
         for organism in organisms:
             if organism.is_dead():
+                organisms.remove(organism)
                 continue
 
             organism.update(food_grid, dt)
+
+            population.update_organism_position(organism)
 
             nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
 
@@ -207,7 +210,7 @@ while running:
                     organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
                     organism.time_since_food = 0
                     foods.remove(food)
-                    food_grid.remove(food, food.x, food.y)
+                    food_grid.remove(food)
                     break
 
         food_respawn_timer += dt
