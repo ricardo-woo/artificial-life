@@ -25,6 +25,7 @@ from settings import (
     NUM_RAYS,
     RAY_FOV,
     RAY_CATEGORIES,
+    ORGANISM_SPRITE,
 )
 from noise import OU_Noise
 
@@ -125,6 +126,9 @@ class Organism:
         # Brain
         self.brain = genome.brain
         self.ray_sensor = genome.ray_sensor
+
+        # Sprite
+        self.image = ORGANISM_SPRITE
 
     # UPDATE
 
@@ -251,7 +255,22 @@ class Organism:
 
         radius = max(1, int(self.radius * camera.zoom))
 
-        pygame.draw.circle(screen, ORGANISM_COLOR, (screen_x, screen_y), radius)
+        scale = camera.zoom * 2
+
+        image = pygame.transform.scale(
+            self.image,
+            (
+                int(self.image.get_width() * scale),
+                int(self.image.get_height() * scale),
+            ),
+        )
+
+        angle_degrees = -math.degrees(self.angle) - 90
+
+        image = pygame.transform.rotate(image, angle_degrees)
+
+        rect = image.get_rect(center=(screen_x, screen_y))
+        screen.blit(image, rect)
 
     def draw_rays(self, screen, camera, food_grid):
         rays = self.cast_rays(food_grid)
