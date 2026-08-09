@@ -255,7 +255,7 @@ class Organism:
 
         radius = max(1, int(self.radius * camera.zoom))
 
-        scale = camera.zoom * 2
+        scale = camera.zoom
 
         image = pygame.transform.scale(
             self.image,
