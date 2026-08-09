@@ -30,11 +30,29 @@ from settings import (
 from noise import OU_Noise
 
 
+def distance_to_world_bounds(x, y, angle, max_length):
+    dx, dy = math.cos(angle), math.sin(angle)
+    t = max_length
+
+    if dx > 0:
+        t = min(t, (WORLD_WIDTH - x) / dx)
+    elif dx < 0:
+        t = min(t, (0 - x) / dx)
+
+    if dy > 0:
+        t = min(t, (WORLD_HEIGHT - y) / dy)
+    elif dy < 0:
+        t = min(t, (0 - y) / dy)
+
+    return max(0, t)
+
+
 def cast_ray(x, y, angle, max_length, food_grid):
     dx, dy = math.cos(angle), math.sin(angle)
+    wall_t = distance_to_world_bounds(x, y, angle, max_length)
 
-    closest_t = max_length
-    closest_category = None
+    closest_t = wall_t
+    closest_category = "obstacle" if wall_t < max_length else None
 
     candidates = food_grid.query(x, y, max_length)
 
