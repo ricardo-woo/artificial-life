@@ -3,13 +3,69 @@ import math
 import random
 
 from settings import (
-    WORLD_WIDTH, WORLD_HEIGHT, MAX_ENERGY, BASE_ENERGY_DECAY,
-    VISION_ENERGY_COST, RADIUS_ENERGY_COST, WALK_RUN_TRANSITION,
-    IDLE_ENERGY_TAX, IDLE_VELOCITY_TRESHOLD, FITNESS_AGE_CAP,
-    FITNESS_AGE_DIVISOR, FITNESS_FOOD_WEIGHT, NOISE_MU, NOISE_SIGMA,
-    NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING,
-    WALK_SPEED_COEFFICIENT, RUN_SPEED_COEFFICIENT)
+    WORLD_WIDTH,
+    WORLD_HEIGHT,
+    MAX_ENERGY,
+    BASE_ENERGY_DECAY,
+    VISION_ENERGY_COST,
+    RADIUS_ENERGY_COST,
+    WALK_RUN_TRANSITION,
+    IDLE_ENERGY_TAX,
+    IDLE_VELOCITY_TRESHOLD,
+    FITNESS_AGE_CAP,
+    FITNESS_AGE_DIVISOR,
+    FITNESS_FOOD_WEIGHT,
+    NOISE_MU,
+    NOISE_SIGMA,
+    NOISE_THETA,
+    ORGANISM_COLOR,
+    SELECTION_CLICK_PADDING,
+    WALK_SPEED_COEFFICIENT,
+    RUN_SPEED_COEFFICIENT,
+    NUM_RAYS,
+    RAY_CATEGORIES,
+    RAY_FOV,
+)
 from noise import OU_Noise
+
+
+def cast_ray(x, y, angle, max_length, food_grid):
+    dx, dy = math.cos(angle), math.sin(angle)
+
+    closest = max_length
+    closest_type = None
+
+    candidates = food_grid.query(x, y, max_length)
+
+    for candidate in candidates:
+        candidate_dx, candidate_dy = candidate.x - x, candidate.y - y
+
+        projection = candidate_dx * dx + candidate_dy * dy
+        if projection < 0 or projection > closest:
+            continue
+
+        closest_x, closest_y = x + dx * projection, y + dy * projection
+        center_distance = math.dist([candidate.x, candidate.y], [closest.x, closest.y])
+
+        if center_distance > candidate.radius:
+            continue
+
+        offset = math.sqrt(candidate.radius**2 - center_distance**2)
+        t = projection - offset
+
+        if 0 <= t < closest:
+            closest = t
+            closest_type = "food"
+
+    return closest, closest_type
+
+
+def ray_to_input(distance, category, max_length):
+    distance_normalized = distance / max_length
+    one_hot = [0] * len[RAY_CATEGORIES]
+    if category is not None:
+        one_hot[RAY_CATEGORIES.index(category)] = 1
+    return [distance_normalized] + one_hot
 
 
 class Organism:
@@ -44,7 +100,9 @@ class Organism:
         self.vision = genome.vision
 
         # Exploration
-        self.wandering_noise = OU_Noise(mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA)
+        self.wandering_noise = OU_Noise(
+            mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA
+        )
         self.current_noise = 0
         # Position
         self.x = x
@@ -66,6 +124,7 @@ class Organism:
 
         # Brain
         self.brain = genome.brain
+        self.ray_sensor = genome.ray_sensor
 
     # UPDATE
 
@@ -106,7 +165,6 @@ class Organism:
 
         frame_distance = math.hypot(self.x - old_x, self.y - old_y)
 
-
         velocity = frame_distance / dt if dt > 0 else 0
 
         if velocity < IDLE_VELOCITY_TRESHOLD:
@@ -117,50 +175,43 @@ class Organism:
 
     # SENSORS
 
+    def cast_rays(self, food_grid):
+
+        half_fov = RAY_FOV / 2
+        rays = []
+
+        for i in range(NUM_RAYS):
+            if NUM_RAYS == 1:
+                offset = 0
+            else:
+                offset = -half_fov + (RAY_FOV * i / (NUM_RAYS - 1))
+
+            ray_angle = self.angle + offset
+            distance, category = cast_ray(
+                self.x, self.y, ray_angle, self.vision, food_grid
+            )
+            rays.append((ray_to_input(distance, category, self.vision), category))
+
+        return rays
+
     def get_brain_inputs(self, food_grid):
-        closest_food = None
-        closest_distance = self.vision
+        rays = self.cast_rays(food_grid)
 
-        nearby_food = food_grid.query(self.x, self.y, self.vision)
+        ray_inputs = [r[0] for r in rays]
 
-        for food in nearby_food:
-            distance = math.hypot(self.x - food.x, self.y - food.y)
+        ray_summaries = self.ray_sensor.process(ray_inputs)
 
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_food = food
+        food_visible = any(category == "food" for _, category in rays)
 
-        if closest_food is not None:  # Calculate angle to closest food
+        gated_noise = 0 if food_visible else self.current_noise
 
-            direction_x = closest_food.x - self.x
-            direction_y = closest_food.y - self.y
-
-            angle_to_food = math.atan2(direction_y, direction_x)
-            angle_difference = angle_to_food - self.angle
-
-            return [
-                self.energy / MAX_ENERGY,
-                1,
-                closest_distance / self.vision,
-                math.sin(angle_difference),
-                math.cos(angle_difference),
-                min(self.time_since_food / 100, 1),
-                self.current_noise,
-            ]
-
-        else:
-            return self.no_food_in_vision()
-
-    def no_food_in_vision(self):
-        return [
+        inputs = [
             self.energy / MAX_ENERGY,
-            0,
-            1,
-            0,
-            0,
             min(self.time_since_food / 100, 1),
-            self.current_noise,
+            gated_noise,
         ]
+
+        return ray_summaries + inputs
 
     # FOOD
 
