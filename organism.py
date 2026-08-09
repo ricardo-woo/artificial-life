@@ -45,7 +45,7 @@ def cast_ray(x, y, angle, max_length, food_grid):
             continue
 
         closest_x, closest_y = x + dx * projection, y + dy * projection
-        center_distance = math.dist([candidate.x, candidate.y], [closest.x, closest.y])
+        center_distance = math.dist([candidate.x, candidate.y], [closest_x, closest_y])
 
         if center_distance > candidate.radius:
             continue
@@ -62,7 +62,7 @@ def cast_ray(x, y, angle, max_length, food_grid):
 
 def ray_to_input(distance, category, max_length):
     distance_normalized = distance / max_length
-    one_hot = [0] * len[RAY_CATEGORIES]
+    one_hot = [0] * len(RAY_CATEGORIES)
     if category is not None:
         one_hot[RAY_CATEGORIES.index(category)] = 1
     return [distance_normalized] + one_hot
