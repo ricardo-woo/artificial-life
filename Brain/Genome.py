@@ -1,12 +1,24 @@
 import random
 
 from Brain.NeuralNetwork import NeuralNetwork
+from Brain.raycast import RaySensorLayer
+
 from settings import (
-    MIN_SPEED, MAX_SPEED, MIN_VISION, MAX_VISION,
-    MAX_RADIUS, MIN_RADIUS, MAX_TURN_SPEED, MIN_TURN_SPEED,
-    MUTATE_RADIUS_STEP, MUTATE_SPEED_STEP, MUTATE_TURN_SPEED_STEP,
-    MUTATE_VISION_STEP
+    MIN_SPEED,
+    MAX_SPEED,
+    MIN_VISION,
+    MAX_VISION,
+    MAX_RADIUS,
+    MIN_RADIUS,
+    MAX_TURN_SPEED,
+    MIN_TURN_SPEED,
+    MUTATE_RADIUS_STEP,
+    MUTATE_SPEED_STEP,
+    MUTATE_TURN_SPEED_STEP,
+    MUTATE_VISION_STEP,
+    VALUES_PER_RAY,
 )
+
 
 class Genome:
     def __init__(self):
@@ -15,6 +27,7 @@ class Genome:
         self.vision = random.uniform(MIN_VISION, MAX_VISION)
         self.radius = random.uniform(MIN_RADIUS, MAX_RADIUS)
         self.brain = NeuralNetwork()
+        self.ray_sensor = RaySensorLayer(VALUES_PER_RAY)
 
     def copy(self):
 
@@ -26,6 +39,8 @@ class Genome:
         child.radius = self.radius
 
         child.brain = self.brain.copy()
+
+        child.ray_sensor = self.ray_sensor.copy()
 
         return child
 
@@ -39,12 +54,16 @@ class Genome:
         self.radius += random.uniform(-MUTATE_RADIUS_STEP, MUTATE_RADIUS_STEP)
         self.radius = max(MIN_RADIUS, min(MAX_RADIUS, self.radius))
 
-        self.max_turn_speed += random.uniform(-MUTATE_TURN_SPEED_STEP, MUTATE_TURN_SPEED_STEP)
+        self.max_turn_speed += random.uniform(
+            -MUTATE_TURN_SPEED_STEP, MUTATE_TURN_SPEED_STEP
+        )
         self.max_turn_speed = max(
             MIN_TURN_SPEED, min(MAX_TURN_SPEED, self.max_turn_speed)
         )
 
         self.brain.mutate()
+
+        self.ray_sensor.mutate()
 
     def get_data(self):
 
@@ -54,6 +73,7 @@ class Genome:
             "vision": self.vision,
             "radius": self.radius,
             "brain": self.brain.get_data(),
+            "ray_sensor": self.ray_sensor.get_data(),
         }
 
     @staticmethod
@@ -70,5 +90,7 @@ class Genome:
         genome.radius = data["radius"]
 
         genome.brain = NeuralNetwork.from_data(data["brain"])
+
+        genome.ray_sensor = RaySensorLayer.from_data(data["ray_sensor"])
 
         return genome
