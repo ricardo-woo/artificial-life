@@ -23,8 +23,8 @@ from settings import (
     WALK_SPEED_COEFFICIENT,
     RUN_SPEED_COEFFICIENT,
     NUM_RAYS,
-    RAY_CATEGORIES,
     RAY_FOV,
+    RAY_CATEGORIES,
 )
 from noise import OU_Noise
 
@@ -32,32 +32,32 @@ from noise import OU_Noise
 def cast_ray(x, y, angle, max_length, food_grid):
     dx, dy = math.cos(angle), math.sin(angle)
 
-    closest = max_length
-    closest_type = None
+    closest_t = max_length
+    closest_category = None
 
     candidates = food_grid.query(x, y, max_length)
 
-    for candidate in candidates:
-        candidate_dx, candidate_dy = candidate.x - x, candidate.y - y
+    for obj in candidates:
+        obj_dx, obj_dy = obj.x - x, obj.y - y
 
-        projection = candidate_dx * dx + candidate_dy * dy
-        if projection < 0 or projection > closest:
+        proj = obj_dx * dx + obj_dy * dy
+        if proj < 0 or proj > closest_t:
             continue
 
-        closest_x, closest_y = x + dx * projection, y + dy * projection
-        center_distance = math.dist([candidate.x, candidate.y], [closest_x, closest_y])
+        closest_x, closest_y = x + dx * proj, y + dy * proj
+        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
 
-        if center_distance > candidate.radius:
+        if center_dist > obj.radius:
             continue
 
-        offset = math.sqrt(candidate.radius**2 - center_distance**2)
-        t = projection - offset
+        offset = math.sqrt(obj.radius**2 - center_dist**2)
+        t = proj - offset
 
-        if 0 <= t < closest:
-            closest = t
-            closest_type = "food"
+        if 0 <= t < closest_t:
+            closest_t = t
+            closest_category = "food"
 
-    return closest, closest_type
+    return closest_t, closest_category
 
 
 def ray_to_input(distance, category, max_length):
@@ -176,7 +176,6 @@ class Organism:
     # SENSORS
 
     def cast_rays(self, food_grid):
-
         half_fov = RAY_FOV / 2
         rays = []
 
@@ -190,28 +189,35 @@ class Organism:
             distance, category = cast_ray(
                 self.x, self.y, ray_angle, self.vision, food_grid
             )
-            rays.append((ray_to_input(distance, category, self.vision), category))
+
+            rays.append(
+                {
+                    "angle": ray_angle,
+                    "distance": distance,
+                    "category": category,
+                    "input": ray_to_input(distance, category, self.vision),
+                }
+            )
 
         return rays
 
     def get_brain_inputs(self, food_grid):
         rays = self.cast_rays(food_grid)
 
-        ray_inputs = [r[0] for r in rays]
-
+        ray_inputs = [r["input"] for r in rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)
 
-        food_visible = any(category == "food" for _, category in rays)
+        food_visible = any(r["category"] == "food" for r in rays)
 
         gated_noise = 0 if food_visible else self.current_noise
 
-        inputs = [
+        global_inputs = [
             self.energy / MAX_ENERGY,
             min(self.time_since_food / 100, 1),
             gated_noise,
         ]
 
-        return ray_summaries + inputs
+        return ray_summaries + global_inputs
 
     # FOOD
 
@@ -246,3 +252,30 @@ class Organism:
         radius = max(1, int(self.radius * camera.zoom))
 
         pygame.draw.circle(screen, ORGANISM_COLOR, (screen_x, screen_y), radius)
+
+    def draw_rays(self, screen, camera, food_grid):
+        rays = self.cast_rays(food_grid)
+        origin_x, origin_y = camera.world_to_screen(self.x, self.y)
+
+        for ray in rays:
+            end_x = self.x + math.cos(ray["angle"]) * ray["distance"]
+            end_y = self.y + math.sin(ray["angle"]) * ray["distance"]
+            screen_end_x, screen_end_y = camera.world_to_screen(end_x, end_y)
+
+            if ray["category"] == "food":
+                color = (80, 220, 80)
+            elif ray["category"] == "obstacle":
+                color = (220, 90, 90)
+            else:
+                color = (140, 140, 140)
+
+            pygame.draw.line(
+                screen,
+                color,
+                (origin_x, origin_y),
+                (screen_end_x, screen_end_y),
+                1,
+            )
+
+            if ray["category"] is not None:
+                pygame.draw.circle(screen, color, (screen_end_x, screen_end_y), 4)
