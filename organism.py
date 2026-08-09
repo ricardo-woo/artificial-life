@@ -302,7 +302,7 @@ class Organism:
             if ray["category"] == "food":
                 color = (80, 220, 80)
             elif ray["category"] == "obstacle":
-                color = (220, 90, 90)
+                color = (255, 255, 0)
             else:
                 color = (140, 140, 140)
 

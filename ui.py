@@ -90,8 +90,6 @@ class UIManager:
         screen_x, screen_y = camera.world_to_screen(
             selected_organism.x, selected_organism.y
         )
-
-        # Vision radius circle
         pygame.draw.circle(
             screen,
             COLOR_VISION_CIRCLE,
