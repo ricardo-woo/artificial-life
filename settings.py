@@ -1,4 +1,5 @@
 import pygame
+import math
 
 # Display & World
 WIDTH = 1280
@@ -74,6 +75,9 @@ MAX_RADIUS = 15
 MIN_TURN_SPEED = 0.01
 MAX_TURN_SPEED = 2
 
+NUM_RAYS = 7
+RAY_FOV = math.radians(200)
+RAY_CATEGORIES = ["food"]
 VALUES_PER_RAY = 3
 
 MUTATE_SPEED_STEP = 0.1
