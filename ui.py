@@ -168,14 +168,13 @@ class UIManager:
 
         return leaderboard_rows
 
-    def draw_debug(
-        self, screen, organisms, foods, generation_num, generation_time, fps
-    ):
+    def draw_debug(self, screen, organisms, foods, birth_count, simulation_time, fps):
         debug_info = [
-            f"Current Generation: {generation_num}",
-            f"Generation Time:    {generation_time:.1f}s",
-            f"Food Available:     {len(foods)}",
-            f"FPS:                {fps:.1f}",
+            f"Population:      {len(organisms)}",
+            f"Total Births:    {birth_count}",
+            f"Simulation Time: {simulation_time:.1f}s",
+            f"Food Available:  {len(foods)}",
+            f"FPS:             {fps:.1f}",
         ]
 
         x = int(screen.get_width() * HUD_X_PERCENT)

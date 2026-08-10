@@ -4,14 +4,14 @@ import os
 
 from Brain.Genome import Genome
 from organism import Organism
-from settings import (SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT)
+from settings import SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT
 
 
 class SaveManager:
     def __init__(self):
         pass
 
-    def log_generation_to_csv(self, gen, gen_time, organisms_list):
+    def log_generation_to_csv(self, birth_count, gen_time, organisms_list):
 
         file_exists = os.path.exists(CSV_LOG_PATH)
 
@@ -67,7 +67,7 @@ class SaveManager:
 
                 writer.writerow(
                     [
-                        "Generation",
+                        "Birth Count",
                         "Time Seconds",
                         "Best Fitness",
                         "Avg Fitness",
@@ -84,7 +84,7 @@ class SaveManager:
 
             writer.writerow(
                 [
-                    gen,
+                    birth_count,
                     round(gen_time, FLOAT_ROUND_PRECISION),
                     round(best_fitness, FLOAT_ROUND_PRECISION),
                     round(avg_fitness, FLOAT_ROUND_PRECISION),
@@ -126,6 +126,9 @@ class SaveManager:
             organism.age = organism_data["age"]
             organism.food_eaten = organism_data["food_eaten"]
             organism.angle = organism_data["angle"]
+
+            if "next_reproduction" in organism_data:
+                organism.next_reproduction = organism_data["next_reproduction"]
 
             organisms.append(organism)
 

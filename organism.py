@@ -19,7 +19,6 @@ from settings import (
     NOISE_MU,
     NOISE_SIGMA,
     NOISE_THETA,
-    ORGANISM_COLOR,
     SELECTION_CLICK_PADDING,
     WALK_SPEED_COEFFICIENT,
     RUN_SPEED_COEFFICIENT,
@@ -27,6 +26,8 @@ from settings import (
     RAY_FOV,
     RAY_CATEGORIES,
     ORGANISM_SPRITE,
+    REPRODUCTION_ENERGY_COST,
+    REPRODUCTION_AGE,
 )
 from noise import OU_Noise
 
@@ -121,6 +122,7 @@ class Organism:
             "food_eaten": self.food_eaten,
             "angle": self.angle,
             "genome": self.genome.get_data(),
+            "next_reproduction": self.next_reproduction,
         }
 
     @property
@@ -145,6 +147,7 @@ class Organism:
             mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA
         )
         self.current_noise = 0
+
         # Position
         self.x = x
         self.y = y
@@ -172,6 +175,9 @@ class Organism:
 
         # Sprite
         self.image = ORGANISM_SPRITE
+
+        # Reproduction
+        self.next_reproduction = REPRODUCTION_AGE
 
     # UPDATE
 
@@ -220,6 +226,12 @@ class Organism:
             self.energy -= IDLE_ENERGY_TAX * dt
         else:
             self.idle_time = 0
+
+    def ready_to_reproduce(self):
+        return (
+            self.age >= self.next_reproduction
+            and self.energy >= REPRODUCTION_ENERGY_COST
+        )
 
     # SENSORS
 
