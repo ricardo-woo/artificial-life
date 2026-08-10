@@ -1,7 +1,12 @@
 from organism import Organism
 import math
 
-from settings import MAX_ENERGY, PREDATOR_SPRITE, RAY_FOV_PREDATORS
+from settings import (
+    MAX_ENERGY,
+    PREDATOR_SPRITE,
+    RAY_FOV_PREDATORS,
+    PREDATOR_ATTACK_ANGLE,
+)
 
 
 class Predator(Organism):
@@ -17,20 +22,20 @@ class Predator(Organism):
     def update(self, food_grid, organism_grid, dt):
         return super().update(food_grid, organism_grid, dt)
 
-    def can_catch(self, prey):
-        dx = prey.x - self.x
-        dy = prey.y - self.y
-
-        angle_to_prey = math.atan2(dy, dx)
-
-        predator_alignment = math.cos(self.angle - angle_to_prey)
-
-        prey_alignment = math.cos(prey.angle - angle_to_prey)
-
-        return predator_alignment > 0.5 and prey_alignment > 0.3 and self.eat(prey)
-
     def eat_organism(self, target):
-        if not self.can_catch(target):
+        if not self.eat(target):
+            return False
+
+        dx = target.x - self.x
+        dy = target.y - self.y
+
+        angle_to_target = math.atan2(dy, dx)
+
+        angle_difference = (angle_to_target - self.angle + math.pi) % (
+            2 * math.pi
+        ) - math.pi
+
+        if abs(angle_difference) > PREDATOR_ATTACK_ANGLE:
             return False
 
         self.energy = min(MAX_ENERGY, self.energy + target.energy)
