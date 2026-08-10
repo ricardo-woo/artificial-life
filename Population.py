@@ -6,53 +6,77 @@ from settings import (
     WORLD_WIDTH,
     WORLD_HEIGHT,
     POPULATION_SIZE,
-    PARENT_COUNT,
     SPATIAL_CELL_SIZE,
+    REPRODUCTION_OFFSET,
+    ELITE_CLONE_CHANCE,
+    REPRODUCTION_ENERGY_COST,
+    REPRODUCTION_INTERVAL,
+    MAX_POPULATION,
+    REPRODUCTION_CHILD_ENERGY,
 )
+import math
 
 
 class Population:
     def __init__(self):
         self.organism_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
+        self.best_genome = None
+        self.best_fitness = float("inf")
+
     def update_organism_position(self, organism):
         self.organism_grid.update(organism, organism.x, organism.y)
 
-    def next_generation(self, organisms):
-        organisms.sort(key=lambda organism: organism.fitness, reverse=True)
+    def find_best(self, organism):
+        if organism.fitness > self.best_fitness:
+            self.best_fitness = organism.fitness
+            self.best_genome = organism.genome.copy()
 
-        parents = organisms[:PARENT_COUNT]
+    def record_death(self, organism):
+        self.find_best(organism)
 
-        children = []
+    def spawn_close(self, parent=Organism):
+        angle = random.uniform(0, 2 * math.pi)
 
-        best_parent = organisms[0]
+        offset_x = REPRODUCTION_OFFSET * random.uniform(0.5, 1.5)
+        offset_y = REPRODUCTION_OFFSET * random.uniform(0.5, 1.5)
 
-        elite_genome = best_parent.genome.copy()
+        x = parent.x + offset_x * math.cos(angle)
+        y = parent.y + offset_y * math.sin(angle)
 
-        elite_x = random.randint(0, WORLD_WIDTH)
-        elite_y = random.randint(0, WORLD_HEIGHT)
+        x = max(0, min(WORLD_WIDTH, x))
+        y = max(0, min(WORLD_HEIGHT, y))
 
-        elite_child = Organism(elite_x, elite_y, elite_genome)
+        return x, y
 
-        children.append(elite_child)
-        self.organism_grid.clear()
-        self.organism_grid.insert(elite_child, elite_child.x, elite_child.y)
+    def reproduce(self, parent, organisms):
+        self.find_best(parent)
 
-        while len(children) < POPULATION_SIZE:
-            parent = random.choice(parents)
+        if random.random() < ELITE_CLONE_CHANCE:
+            child_genome = parent.genome.copy()
+        else:
+            child_genome = parent.genome.copy()
+            child_genome.mutate()
 
-            genome = parent.genome.copy()
+        parent.energy -= REPRODUCTION_ENERGY_COST
+        parent.next_reproduction += REPRODUCTION_INTERVAL
 
-            genome.mutate()
+        spawn_x, spawn_y = self.spawn_close(parent)
 
-            random_x = random.randint(0, WORLD_WIDTH)
-            random_y = random.randint(0, WORLD_HEIGHT)
+        child = Organism(spawn_x, spawn_y, child_genome)
+        child.energy = REPRODUCTION_CHILD_ENERGY
 
-            child = Organism(random_x, random_y, genome)
+        living = [o for o in organisms if not o.is_dead() and o is not parent]
 
-            children.append(child)
-            self.organism_grid.insert(child, child.x, child.y)
-        return children
+        if len(living) >= MAX_POPULATION - 1:
+            weakest = min(living, key=lambda o: o.fitness)
+            self.record_death(weakest)
+            self.organism_grid.remove(weakest)
+            organisms.remove(weakest)
+
+        organisms.append(child)
+        self.organism_grid.insert(child, child.x, child.y)
+        return child
 
     def create_initial_population(self, organisms):
         self.organism_grid.clear()
