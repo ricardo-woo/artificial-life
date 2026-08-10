@@ -6,10 +6,10 @@ WIDTH = 1280
 HEIGHT = 720
 FPS = 60
 
-WORLD_WIDTH = 12000
-WORLD_HEIGHT = 12000
+WORLD_WIDTH = 3000
+WORLD_HEIGHT = 3000
 
-SPATIAL_CELL_SIZE = 400
+SPATIAL_CELL_SIZE = 50
 
 BACKGROUND_COLOR = (20, 20, 20)
 
@@ -28,7 +28,7 @@ POPULATION_SIZE = 300
 PARENT_COUNT = 10
 
 # Bush
-BUSH_COUNT = 100
+BUSH_COUNT = 20
 
 # Food
 FOOD_COUNT = 300
@@ -64,7 +64,7 @@ NOISE_SIGMA = 2.5
 
 # Genome & Mutation
 MIN_SPEED = 0.1
-MAX_SPEED = 10
+MAX_SPEED = 20
 
 MIN_VISION = 80
 MAX_VISION = 500
@@ -75,10 +75,10 @@ MAX_RADIUS = 15
 MIN_TURN_SPEED = 0.01
 MAX_TURN_SPEED = 2
 
-NUM_RAYS = 7
+NUM_RAYS = 10
 RAY_FOV = math.radians(200)
-RAY_CATEGORIES = ["food"]
-VALUES_PER_RAY = 3
+RAY_CATEGORIES = ["food", "obstacle", "organism"]
+VALUES_PER_RAY = 1 + len(RAY_CATEGORIES)
 
 MUTATE_SPEED_STEP = 0.1
 MUTATE_VISION_STEP = 5
@@ -135,4 +135,5 @@ JSON_INDENT = 4
 # Assets
 BUSH_IMAGE = pygame.image.load("assets/bush.png")
 ORGANISM_SPRITE = pygame.image.load("assets/organism.png")
+ORB_FOOD_SPRITE = pygame.image.load("assets/orb_food.png")
 FOOD_BUSH_RADIUS = 150
