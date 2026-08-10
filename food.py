@@ -34,6 +34,8 @@ class Food:
 
         self.image = ORB_FOOD_SPRITE
 
+        self.keep_inside_world()
+
     def draw(self, screen, camera):
         screen_x, screen_y = camera.world_to_screen(self.x, self.y)
 
@@ -49,3 +51,9 @@ class Food:
 
         rect = image.get_rect(center=(screen_x, screen_y))
         screen.blit(image, rect)
+
+    def keep_inside_world(self):
+
+        self.x = max(self.radius, min(WORLD_WIDTH - self.radius, self.x))
+
+        self.y = max(self.radius, min(WORLD_HEIGHT - self.radius, self.y))
