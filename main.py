@@ -1,7 +1,5 @@
 import os
 import random
-import sys
-import time
 import pygame
 
 from Brain.Genome import Genome
@@ -20,11 +18,9 @@ from settings import (
     SPATIAL_CELL_SIZE,
     FOOD_RESPAWN_INTERVAL,
     FPS,
-    GENERATION_END_WAIT_TIME,
     HEIGHT,
     KEY_FAST_FORWARD,
     KEY_FOLLOW_ORGANISM,
-    KEY_NEXT_GENERATION,
     KEY_PAUSE_SELECTION,
     MAX_ENERGY,
     BUSH_COUNT,
@@ -52,28 +48,27 @@ save_timer = 0
 population = Population()
 camera = Camera()
 ui_manager = UIManager(font)
-generation = 1
-waiting_for_next_gen = False
-top_organism_snapshot = []
-generation_end_time = 0
 food_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 bush_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
 simulation_clock = SimulationClock()
-generation_simulation_time = 0
 is_fast_forwarding = False
+
+birth_count = 0
+total_simulation_time = 0
+stats_log_timer = 0
+STATS_LOG_INTERVAL = 60
 
 organisms = []
 
 if os.path.exists(SAVE_FILE_PATH):
-    organisms, generation, generation_simulation_time = save_manager.load_game()
+    organisms, birth_count, total_simulation_time = save_manager.load_game()
 
     population.organism_grid.clear()
 
     for organism in organisms:
         population.organism_grid.insert(organism, organism.x, organism.y)
 else:
-    generation = 1
     organisms = population.create_initial_population(organisms)
 
 
@@ -107,145 +102,112 @@ while running:
     save_timer += clock.get_time()
 
     if save_timer > SAVE_INTERVAL_MS:
-        save_manager.save_game(organisms, generation, generation_simulation_time)
+        save_manager.save_game(organisms, birth_count, total_simulation_time)
         save_timer = 0
 
     # EVENTS
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            save_manager.save_game(organisms, generation, generation_simulation_time)
+            save_manager.save_game(organisms, birth_count, total_simulation_time)
             running = False
 
         elif event.type == pygame.KEYDOWN:
 
             if event.key == KEY_DEBUG:
                 debug_open = not debug_open
-            if waiting_for_next_gen:
-                if event.key == KEY_NEXT_GENERATION:
-                    organisms = population.next_generation(organisms)
-                    generation += 1
-                    foods = []
-                    food_grid.clear()
 
-                    for _ in range(FOOD_COUNT):
-                        new_food = Food(bushes)
-                        foods.append(new_food)
-                        food_grid.insert(new_food, new_food.x, new_food.y)
-
-                    waiting_for_next_gen = False
-                    generation_simulation_time = 0
-                    food_respawn_timer = 0
-            else:
-                if event.key == KEY_PAUSE_SELECTION:
-                    selected_organism = None
-                    camera.following = None
-
-                elif event.key == KEY_FOLLOW_ORGANISM:
-                    if selected_organism is not None:
-                        camera.following = selected_organism
-
-                elif event.key == KEY_FAST_FORWARD:
-                    is_fast_forwarding = not is_fast_forwarding
-                    simulation_clock.speed = (
-                        FAST_FORWARD_SPEED if is_fast_forwarding else 1
-                    )
-
-        elif not waiting_for_next_gen:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 2:
-                    camera.start_drag()
-                elif event.button == 1:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    world_x, world_y = camera.screen_to_world(mouse_x, mouse_y)
-                    selected_organism = None
-                    for organism in organisms:
-                        if organism.contains_point(world_x, world_y):
-                            selected_organism = organism
-                            break
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 2:
-                    camera.stop_drag()
-            elif event.type == pygame.MOUSEMOTION:
-                camera.drag()
-            elif event.type == pygame.MOUSEWHEEL:
-                if event.y > 0:
-                    camera.zoom_in()
-                elif event.y < 0:
-                    camera.zoom_out()
-
-    if waiting_for_next_gen:
-        if time.time() - generation_end_time >= GENERATION_END_WAIT_TIME:
-            organisms = population.next_generation(organisms)
-            generation += 1
-            foods = []
-            food_grid.clear()
-            for _ in range(FOOD_COUNT):
-                new_food = Food(bushes)
-                foods.append(new_food)
-                food_grid.insert(new_food, new_food.x, new_food.y)
-            waiting_for_next_gen = False
-            generation_simulation_time = 0
-            food_respawn_timer = 0
-
-    if not waiting_for_next_gen:
-        dt = simulation_clock.update()
-        generation_simulation_time += dt
-    else:
-        dt = 0
-
-    if not waiting_for_next_gen:
-
-        for organism in organisms:
-            if organism.is_dead():
-                population.organism_grid.remove(organism)
-                continue
-
-            organism.update(food_grid, population.organism_grid, dt)
-
-            population.update_organism_position(organism)
-
-            nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
-
-            for food in nearby_food:
-
-                if food not in foods:
-                    continue
-
-                if organism.eat(food):
-                    organism.food_eaten += 1
-                    organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
-                    organism.time_since_food = 0
-                    foods.remove(food)
-                    food_grid.remove(food)
-                    break
-
-        food_respawn_timer += dt
-        while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:
-            new_food = Food(bushes)
-            foods.append(new_food)
-            food_grid.insert(new_food, new_food.x, new_food.y)
-            food_respawn_timer -= FOOD_RESPAWN_INTERVAL
-
-        if selected_organism is not None:
-            if selected_organism not in organisms:
+            if event.key == KEY_PAUSE_SELECTION:
                 selected_organism = None
                 camera.following = None
 
-        camera.update()
+            elif event.key == KEY_FOLLOW_ORGANISM:
+                if selected_organism is not None:
+                    camera.following = selected_organism
 
-        # Check if generation has ended
-        if all(organism.is_dead() for organism in organisms):
-            organisms.sort(key=lambda organism: organism.fitness, reverse=True)
-            top_organism_snapshot = list(organisms)
-            waiting_for_next_gen = True
-            generation_end_time = time.time()
+            elif event.key == KEY_FAST_FORWARD:
+                is_fast_forwarding = not is_fast_forwarding
+                simulation_clock.speed = FAST_FORWARD_SPEED if is_fast_forwarding else 1
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 2:
+                camera.start_drag()
+            elif event.button == 1:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                world_x, world_y = camera.screen_to_world(mouse_x, mouse_y)
+                selected_organism = None
+                for organism in organisms:
+                    if organism.contains_point(world_x, world_y):
+                        selected_organism = organism
+                        break
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 2:
+                camera.stop_drag()
+        elif event.type == pygame.MOUSEMOTION:
+            camera.drag()
+        elif event.type == pygame.MOUSEWHEEL:
+            if event.y > 0:
+                camera.zoom_in()
+            elif event.y < 0:
+                camera.zoom_out()
+
+    dt = simulation_clock.update()
+    total_simulation_time += dt
+
+    newly_dead = []
+
+    for organism in organisms:
+        if organism.is_dead():
+            newly_dead.append(organism)
+            continue
+
+        organism.update(food_grid, population.organism_grid, dt)
+
+        population.update_organism_position(organism)
+
+        nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
+
+        for food in nearby_food:
+
+            if food not in foods:
+                continue
+
+            if organism.eat(food):
+                organism.food_eaten += 1
+                organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
+                organism.time_since_food = 0
+                foods.remove(food)
+                food_grid.remove(food)
+                break
+
+        if organism.ready_to_reproduce():
+            population.reproduce(organism, organisms)
+            birth_count += 1
+
+    for dead_organism in newly_dead:
+        population.record_death(dead_organism)
+        population.organism_grid.remove(dead_organism)
+        organisms.remove(dead_organism)
+
+    food_respawn_timer += dt
+    while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:
+        new_food = Food(bushes)
+        foods.append(new_food)
+        food_grid.insert(new_food, new_food.x, new_food.y)
+        food_respawn_timer -= FOOD_RESPAWN_INTERVAL
+
+    if selected_organism is not None:
+        if selected_organism not in organisms:
             selected_organism = None
             camera.following = None
-            save_manager.log_generation_to_csv(
-                generation, generation_simulation_time, organisms
-            )
 
-    current_generation_time = generation_simulation_time
+    camera.update()
+
+    stats_log_timer += dt
+    if stats_log_timer >= STATS_LOG_INTERVAL:
+        save_manager.log_generation_to_csv(
+            birth_count, total_simulation_time, organisms
+        )
+        stats_log_timer = 0
 
     # RENDERING
     screen.fill(BACKGROUND_COLOR)
@@ -265,16 +227,13 @@ while running:
         screen, camera, selected_organism, food_grid, population.organism_grid
     )
 
-    if waiting_for_next_gen:
-        ui_manager.draw_leaderboard(screen, top_organism_snapshot, generation)
-
     if debug_open:
         leaderboard_rows = ui_manager.draw_debug(
             screen,
             organisms,
             foods,
-            generation,
-            generation_simulation_time,
+            birth_count,
+            total_simulation_time,
             clock.get_fps(),
         )
 
