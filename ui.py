@@ -175,7 +175,6 @@ class UIManager:
             f"Current Generation: {generation_num}",
             f"Generation Time:    {generation_time:.1f}s",
             f"Food Available:     {len(foods)}",
-            f"Organisms Alive:    {len(organisms)}",
             f"FPS:                {fps:.1f}",
         ]
 
