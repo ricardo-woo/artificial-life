@@ -18,5 +18,6 @@ class Predator(Organism):
         if self.eat(target):
             self.energy = min(MAX_ENERGY, self.energy + target.energy * 0.5)
             self.kills += 1
+            target.energy = 0
             return True
         return False
