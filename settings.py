@@ -87,7 +87,7 @@ MAX_TURN_SPEED = 2
 
 NUM_RAYS = 10
 RAY_FOV = math.radians(200)
-RAY_CATEGORIES = ["food", "obstacle", "organism"]
+RAY_CATEGORIES = ["food", "obstacle", "prey", "predator"]
 VALUES_PER_RAY = 1 + len(RAY_CATEGORIES)
 
 MUTATE_SPEED_STEP = 0.1
