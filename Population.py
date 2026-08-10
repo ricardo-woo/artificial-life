@@ -22,7 +22,7 @@ class Population:
         self.organism_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
         self.best_genome = None
-        self.best_fitness = float("inf")
+        self.best_fitness = float("-inf")
 
     def update_organism_position(self, organism):
         self.organism_grid.update(organism, organism.x, organism.y)

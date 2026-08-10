@@ -4,7 +4,7 @@ import math
 # Display & World
 WIDTH = 1280
 HEIGHT = 720
-FPS = 60
+FPS = 144
 
 WORLD_WIDTH = 1500
 WORLD_HEIGHT = 1500
