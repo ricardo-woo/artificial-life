@@ -1,6 +1,6 @@
 from organism import Organism
 
-from settings import PREY_SPRITE
+from settings import PREY_SPRITE, PREY_REPRODUCTION_AGE
 
 
 class Prey(Organism):
@@ -10,6 +10,7 @@ class Prey(Organism):
         self.type = "prey"
 
         self.image = PREY_SPRITE
+        self.next_reproduction = PREY_REPRODUCTION_AGE
 
     def update(self, food_grid, organism_grid, dt):
         return super().update(food_grid, organism_grid, dt)
