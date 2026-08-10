@@ -26,6 +26,7 @@ from settings import (
     RAY_CATEGORIES,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_AGE,
+    RAY_CATEGORY_VALUES,
 )
 from noise import OU_Noise
 
@@ -284,6 +285,8 @@ class Organism:
         ray_inputs = [r["input"] for r in self.rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)
 
+        ray_inputs_flat = [value for ray in ray_summaries for value in ray]
+
         target_visible = any(r["category"] == "food" for r in self.rays)
 
         if self.type == "predator":
@@ -298,7 +301,7 @@ class Organism:
             gated_noise,
         ]
 
-        return ray_summaries + global_inputs
+        return ray_inputs_flat + global_inputs
 
     # FOOD
 
