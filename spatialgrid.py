@@ -9,6 +9,7 @@ class SpatialGrid:
 
     def clear(self):
         self.cells.clear()
+        self.object_cells.clear()
 
     def get_cell(self, x, y):
         return (int(x // self.cell_size), int(y // self.cell_size))

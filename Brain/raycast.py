@@ -11,7 +11,7 @@ class RaySensorLayer:
 
     def copy(self):
         new_layer = RaySensorLayer(self.values_per_ray)
-        new_layer.kernel = self.processor.copy()
+        new_layer.processor = self.processor.copy()
         return new_layer
 
     def mutate(self):
