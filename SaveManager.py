@@ -11,7 +11,7 @@ class SaveManager:
     def __init__(self):
         pass
 
-    def log_generation_to_csv(self, gen, gen_time, organisms_list):
+    def log_generation_to_csv(self, birth_count, gen_time, organisms_list):
 
         file_exists = os.path.exists(CSV_LOG_PATH)
 
@@ -67,7 +67,7 @@ class SaveManager:
 
                 writer.writerow(
                     [
-                        "Generation",
+                        "Birth Count",
                         "Time Seconds",
                         "Best Fitness",
                         "Avg Fitness",
@@ -84,7 +84,7 @@ class SaveManager:
 
             writer.writerow(
                 [
-                    gen,
+                    birth_count,
                     round(gen_time, FLOAT_ROUND_PRECISION),
                     round(best_fitness, FLOAT_ROUND_PRECISION),
                     round(avg_fitness, FLOAT_ROUND_PRECISION),
@@ -127,8 +127,6 @@ class SaveManager:
             organism.food_eaten = organism_data["food_eaten"]
             organism.angle = organism_data["angle"]
 
-            # Falls back to the default set in Organism.__init__ for save
-            # files created before reproduction tracking existed.
             if "next_reproduction" in organism_data:
                 organism.next_reproduction = organism_data["next_reproduction"]
 
