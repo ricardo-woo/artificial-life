@@ -16,7 +16,7 @@ class Predator(Organism):
 
     def eat_organism(self, target):
         if self.eat(target):
-            self.energy = min(MAX_ENERGY, self.energy + target.energy * 0.5)
+            self.energy = min(MAX_ENERGY, self.energy + target.energy)
             self.food_eaten += 1
             target.energy = 0
             return True
