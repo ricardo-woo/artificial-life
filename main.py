@@ -67,9 +67,15 @@ organisms = []
 
 if os.path.exists(SAVE_FILE_PATH):
     organisms, generation, generation_simulation_time = save_manager.load_game()
+
+    population.organism_grid.clear()
+
+    for organism in organisms:
+        population.organism_grid.insert(organism, organism.x, organism.y)
 else:
     generation = 1
     organisms = population.create_initial_population(organisms)
+
 
 food_respawn_timer = 0
 foods = []
@@ -139,7 +145,6 @@ while running:
                         camera.following = selected_organism
 
                 elif event.key == KEY_FAST_FORWARD:
-                    # Toggle fast-forward state
                     is_fast_forwarding = not is_fast_forwarding
                     simulation_clock.speed = (
                         FAST_FORWARD_SPEED if is_fast_forwarding else 1
@@ -189,12 +194,13 @@ while running:
         dt = 0
 
     if not waiting_for_next_gen:
+
         for organism in organisms:
             if organism.is_dead():
-                organisms.remove(organism)
+                population.organism_grid.remove(organism)
                 continue
 
-            organism.update(food_grid, dt)
+            organism.update(food_grid, population.organism_grid, dt)
 
             population.update_organism_position(organism)
 
@@ -255,7 +261,9 @@ while running:
     for organism in organisms:
         organism.draw(screen, camera)
 
-    ui_manager.draw_selection_and_hud(screen, camera, selected_organism, food_grid)
+    ui_manager.draw_selection_and_hud(
+        screen, camera, selected_organism, food_grid, population.organism_grid
+    )
 
     if waiting_for_next_gen:
         ui_manager.draw_leaderboard(screen, top_organism_snapshot, generation)
