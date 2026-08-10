@@ -53,25 +53,27 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, orga
     closest_t = wall_t
     closest_category = "obstacle" if wall_t < max_length else None
 
-    for obj in food_candidates:
-        obj_dx, obj_dy = obj.x - x, obj.y - y
+    if food_candidates:
 
-        proj = obj_dx * dx + obj_dy * dy
-        if proj < 0 or proj > closest_t:
-            continue
+        for obj in food_candidates:
+            obj_dx, obj_dy = obj.x - x, obj.y - y
 
-        closest_x, closest_y = x + dx * proj, y + dy * proj
-        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
+            proj = obj_dx * dx + obj_dy * dy
+            if proj < 0 or proj > closest_t:
+                continue
 
-        if center_dist > obj.radius:
-            continue
+            closest_x, closest_y = x + dx * proj, y + dy * proj
+            center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
 
-        offset = math.sqrt(obj.radius**2 - center_dist**2)
-        t = proj - offset
+            if center_dist > obj.radius:
+                continue
 
-        if 0 <= t < closest_t:
-            closest_t = t
-            closest_category = "food"
+            offset = math.sqrt(obj.radius**2 - center_dist**2)
+            t = proj - offset
+
+            if 0 <= t < closest_t:
+                closest_t = t
+                closest_category = "food"
 
     for obj in organism_candidates:
 
@@ -243,7 +245,10 @@ class Organism:
 
         nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
 
-        nearby_food = food_grid.query(self.x, self.y, self.vision)
+        nearby_food = None
+
+        if not self.type == "predator":
+            nearby_food = food_grid.query(self.x, self.y, self.vision)
 
         for i in range(NUM_RAYS):
             if NUM_RAYS == 1:
@@ -279,9 +284,13 @@ class Organism:
         ray_inputs = [r["input"] for r in self.rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)
 
-        food_visible = any(r["category"] == "food" for r in self.rays)
+        target_visible = any(r["category"] == "food" for r in self.rays)
 
-        gated_noise = 0 if food_visible else self.current_noise
+        if self.type == "predator":
+
+            target_visible = any(r["category"] == "prey" for r in self.rays)
+
+        gated_noise = 0 if target_visible else self.current_noise
 
         global_inputs = [
             self.energy / MAX_ENERGY,
