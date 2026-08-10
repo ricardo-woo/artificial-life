@@ -14,12 +14,17 @@ class SpatialGrid:
         return (int(x // self.cell_size), int(y // self.cell_size))
 
     def insert(self, target, x, y):
+        # Don't insert the same object twice
+        if target in self.object_cells:
+            return
+
         cell = self.get_cell(x, y)
 
         if cell not in self.cells:
             self.cells[cell] = []
 
         self.cells[cell].append(target)
+        self.object_cells[target] = cell
 
     def remove(self, target):
         cell = self.object_cells.get(target)
