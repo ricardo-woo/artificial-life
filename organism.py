@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import time
 
 from settings import (
     WORLD_WIDTH,
@@ -30,8 +31,7 @@ from settings import (
 from noise import OU_Noise
 
 
-def distance_to_world_bounds(x, y, angle, max_length):
-    dx, dy = math.cos(angle), math.sin(angle)
+def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
     t = max_length
 
     if dx > 0:
@@ -47,16 +47,14 @@ def distance_to_world_bounds(x, y, angle, max_length):
     return max(0, t)
 
 
-def cast_ray(x, y, angle, max_length, food_grid):
+def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, organism):
     dx, dy = math.cos(angle), math.sin(angle)
-    wall_t = distance_to_world_bounds(x, y, angle, max_length)
+    wall_t = distance_to_world_bounds(x, y, dx, dy, angle, max_length)
 
     closest_t = wall_t
     closest_category = "obstacle" if wall_t < max_length else None
 
-    candidates = food_grid.query(x, y, max_length)
-
-    for obj in candidates:
+    for obj in food_candidates:
         obj_dx, obj_dy = obj.x - x, obj.y - y
 
         proj = obj_dx * dx + obj_dy * dy
@@ -75,6 +73,30 @@ def cast_ray(x, y, angle, max_length, food_grid):
         if 0 <= t < closest_t:
             closest_t = t
             closest_category = "food"
+
+    for obj in organism_candidates:
+
+        if obj is organism:
+            continue
+
+        obj_dx, obj_dy = obj.x - x, obj.y - y
+
+        proj = obj_dx * dx + obj_dy * dy
+        if proj < 0 or proj > closest_t:
+            continue
+
+        closest_x, closest_y = x + dx * proj, y + dy * proj
+        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
+
+        if center_dist > obj.radius:
+            continue
+
+        offset = math.sqrt(obj.radius**2 - center_dist**2)
+        t = proj - offset
+
+        if 0 <= t < closest_t:
+            closest_t = t
+            closest_category = "organism"
 
     return closest_t, closest_category
 
@@ -144,13 +166,16 @@ class Organism:
         # Brain
         self.brain = genome.brain
         self.ray_sensor = genome.ray_sensor
+        self.rays = []
+        self.brain_inputs = []
+        self.brain_outputs = []
 
         # Sprite
         self.image = ORGANISM_SPRITE
 
     # UPDATE
 
-    def update(self, food_grid, dt):
+    def update(self, food_grid, organism_grid, dt):
         self.age += dt
         self.time_since_food += dt
 
@@ -160,11 +185,12 @@ class Organism:
 
         self.current_noise = self.wandering_noise.step(dt)
 
-        inputs = self.get_brain_inputs(food_grid)
-        outputs = self.brain.predict(inputs)
+        self.brain_inputs = self.get_brain_inputs(food_grid, organism_grid)
 
-        turn = outputs[0]
-        movement = (outputs[1] + 1) / 2
+        self.brain_outputs = self.brain.predict(self.brain_inputs)
+
+        turn = self.brain_outputs[0]
+        movement = (self.brain_outputs[1] + 1) / 2
 
         actual_speed = movement * self.speed
 
@@ -197,9 +223,13 @@ class Organism:
 
     # SENSORS
 
-    def cast_rays(self, food_grid):
+    def cast_rays(self, food_grid, organism_grid):
         half_fov = RAY_FOV / 2
         rays = []
+
+        nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
+
+        nearby_food = food_grid.query(self.x, self.y, self.vision)
 
         for i in range(NUM_RAYS):
             if NUM_RAYS == 1:
@@ -209,7 +239,13 @@ class Organism:
 
             ray_angle = self.angle + offset
             distance, category = cast_ray(
-                self.x, self.y, ray_angle, self.vision, food_grid
+                self.x,
+                self.y,
+                ray_angle,
+                self.vision,
+                nearby_food,
+                nearby_organisms,
+                self,
             )
 
             rays.append(
@@ -223,13 +259,13 @@ class Organism:
 
         return rays
 
-    def get_brain_inputs(self, food_grid):
-        rays = self.cast_rays(food_grid)
+    def get_brain_inputs(self, food_grid, organism_grid):
+        self.rays = self.cast_rays(food_grid, organism_grid)
 
-        ray_inputs = [r["input"] for r in rays]
+        ray_inputs = [r["input"] for r in self.rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)
 
-        food_visible = any(r["category"] == "food" for r in rays)
+        food_visible = any(r["category"] == "food" for r in self.rays)
 
         gated_noise = 0 if food_visible else self.current_noise
 
@@ -268,6 +304,8 @@ class Organism:
         return distance <= self.radius + SELECTION_CLICK_PADDING
 
     def draw(self, screen, camera):
+        if self.is_dead():
+            return
 
         screen_x, screen_y = camera.world_to_screen(self.x, self.y)
 
@@ -290,8 +328,9 @@ class Organism:
         rect = image.get_rect(center=(screen_x, screen_y))
         screen.blit(image, rect)
 
-    def draw_rays(self, screen, camera, food_grid):
-        rays = self.cast_rays(food_grid)
+    def draw_rays(self, screen, camera):
+        rays = self.rays
+
         origin_x, origin_y = camera.world_to_screen(self.x, self.y)
 
         for ray in rays:
@@ -303,6 +342,8 @@ class Organism:
                 color = (80, 220, 80)
             elif ray["category"] == "obstacle":
                 color = (255, 255, 0)
+            elif ray["category"] == "organism":
+                color = (48, 92, 222)
             else:
                 color = (140, 140, 140)
 
