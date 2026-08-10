@@ -23,7 +23,6 @@ from settings import (
     WALK_SPEED_COEFFICIENT,
     RUN_SPEED_COEFFICIENT,
     NUM_RAYS,
-    RAY_FOV,
     RAY_CATEGORIES,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_AGE,
@@ -143,6 +142,7 @@ class Organism:
         self.speed = genome.speed
         self.max_turn_speed = genome.max_turn_speed
         self.vision = genome.vision
+        self.ray_fov = math.radians(200)
 
         # Exploration
         self.wandering_noise = OU_Noise(
@@ -238,7 +238,7 @@ class Organism:
     # SENSORS
 
     def cast_rays(self, food_grid, organism_grid):
-        half_fov = RAY_FOV / 2
+        half_fov = self.ray_fov / 2
         rays = []
 
         nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
@@ -249,7 +249,7 @@ class Organism:
             if NUM_RAYS == 1:
                 offset = 0
             else:
-                offset = -half_fov + (RAY_FOV * i / (NUM_RAYS - 1))
+                offset = -half_fov + (self.ray_fov * i / (NUM_RAYS - 1))
 
             ray_angle = self.angle + offset
             distance, category = cast_ray(
