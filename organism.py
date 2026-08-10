@@ -115,6 +115,7 @@ class Organism:
     def get_data(self):
 
         return {
+            "type": self.type,
             "x": self.x,
             "y": self.y,
             "energy": self.energy,
@@ -133,6 +134,8 @@ class Organism:
         )
 
     def __init__(self, x, y, genome):
+        self.type = "organism"
+
         # Genome
         self.genome = genome
 
