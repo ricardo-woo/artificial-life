@@ -17,6 +17,8 @@ from settings import (
     MAX_PREY,
     PREDATOR_POPULATION_SIZE,
     PREY_POPULATION_SIZE,
+    RESEED_COUNT,
+    RESEED_DELAY,
 )
 import math
 
@@ -29,6 +31,8 @@ class Population:
 
         self.best_genome = None
         self.best_fitness = float("-inf")
+
+        self.extinct_time = {Predator: 0, Prey: 0}
 
     def update_organism_position(self, organism):
         self.organism_grid.update(organism, organism.x, organism.y)
@@ -90,6 +94,20 @@ class Population:
         organisms.append(child)
         self.organism_grid.insert(child, child.x, child.y)
         return child
+
+    def update_extinctions(self, organisms, dt):
+        for species in (Predator, Prey):
+            alive = any(type(o) is species for o in organisms)
+
+            if alive:
+                self.extinct_time[species] = 0
+                continue
+
+            self.extinct_time[species] += dt
+
+            if self.extinct_time[species] >= RESEED_DELAY:
+                self.spawn_species(organisms, species, RESEED_COUNT)
+                self.extinct_time[species] = 0
 
     def spawn_species(self, organisms, species, count):
         for _ in range(count):
