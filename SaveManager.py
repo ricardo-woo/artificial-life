@@ -129,8 +129,8 @@ class SaveManager:
 
             # Falls back to the default set in Organism.__init__ for save
             # files created before reproduction tracking existed.
-            if "next_reproduction_age" in organism_data:
-                organism.next_reproduction_age = organism_data["next_reproduction_age"]
+            if "next_reproduction" in organism_data:
+                organism.next_reproduction = organism_data["next_reproduction"]
 
             organisms.append(organism)
 
