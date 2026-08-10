@@ -4,7 +4,7 @@ import os
 
 from Brain.Genome import Genome
 from organism import Organism
-from settings import (SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT)
+from settings import SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT
 
 
 class SaveManager:
@@ -126,6 +126,11 @@ class SaveManager:
             organism.age = organism_data["age"]
             organism.food_eaten = organism_data["food_eaten"]
             organism.angle = organism_data["angle"]
+
+            # Falls back to the default set in Organism.__init__ for save
+            # files created before reproduction tracking existed.
+            if "next_reproduction_age" in organism_data:
+                organism.next_reproduction_age = organism_data["next_reproduction_age"]
 
             organisms.append(organism)
 
