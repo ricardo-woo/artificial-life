@@ -1,15 +1,112 @@
 import pygame
 import math
 import random
+import time
 
 from settings import (
-    WORLD_WIDTH, WORLD_HEIGHT, MAX_ENERGY, BASE_ENERGY_DECAY,
-    VISION_ENERGY_COST, RADIUS_ENERGY_COST, WALK_RUN_TRANSITION,
-    IDLE_ENERGY_TAX, IDLE_VELOCITY_TRESHOLD, FITNESS_AGE_CAP,
-    FITNESS_AGE_DIVISOR, FITNESS_FOOD_WEIGHT, NOISE_MU, NOISE_SIGMA,
-    NOISE_THETA, ORGANISM_COLOR, SELECTION_CLICK_PADDING,
-    WALK_SPEED_COEFFICIENT, RUN_SPEED_COEFFICIENT)
+    WORLD_WIDTH,
+    WORLD_HEIGHT,
+    MAX_ENERGY,
+    BASE_ENERGY_DECAY,
+    VISION_ENERGY_COST,
+    RADIUS_ENERGY_COST,
+    WALK_RUN_TRANSITION,
+    IDLE_ENERGY_TAX,
+    IDLE_VELOCITY_TRESHOLD,
+    FITNESS_AGE_CAP,
+    FITNESS_AGE_DIVISOR,
+    FITNESS_FOOD_WEIGHT,
+    NOISE_MU,
+    NOISE_SIGMA,
+    NOISE_THETA,
+    ORGANISM_COLOR,
+    SELECTION_CLICK_PADDING,
+    WALK_SPEED_COEFFICIENT,
+    RUN_SPEED_COEFFICIENT,
+    NUM_RAYS,
+    RAY_FOV,
+    RAY_CATEGORIES,
+    ORGANISM_SPRITE,
+)
 from noise import OU_Noise
+
+
+def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
+    t = max_length
+
+    if dx > 0:
+        t = min(t, (WORLD_WIDTH - x) / dx)
+    elif dx < 0:
+        t = min(t, (0 - x) / dx)
+
+    if dy > 0:
+        t = min(t, (WORLD_HEIGHT - y) / dy)
+    elif dy < 0:
+        t = min(t, (0 - y) / dy)
+
+    return max(0, t)
+
+
+def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, organism):
+    dx, dy = math.cos(angle), math.sin(angle)
+    wall_t = distance_to_world_bounds(x, y, dx, dy, angle, max_length)
+
+    closest_t = wall_t
+    closest_category = "obstacle" if wall_t < max_length else None
+
+    for obj in food_candidates:
+        obj_dx, obj_dy = obj.x - x, obj.y - y
+
+        proj = obj_dx * dx + obj_dy * dy
+        if proj < 0 or proj > closest_t:
+            continue
+
+        closest_x, closest_y = x + dx * proj, y + dy * proj
+        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
+
+        if center_dist > obj.radius:
+            continue
+
+        offset = math.sqrt(obj.radius**2 - center_dist**2)
+        t = proj - offset
+
+        if 0 <= t < closest_t:
+            closest_t = t
+            closest_category = "food"
+
+    for obj in organism_candidates:
+
+        if obj is organism:
+            continue
+
+        obj_dx, obj_dy = obj.x - x, obj.y - y
+
+        proj = obj_dx * dx + obj_dy * dy
+        if proj < 0 or proj > closest_t:
+            continue
+
+        closest_x, closest_y = x + dx * proj, y + dy * proj
+        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
+
+        if center_dist > obj.radius:
+            continue
+
+        offset = math.sqrt(obj.radius**2 - center_dist**2)
+        t = proj - offset
+
+        if 0 <= t < closest_t:
+            closest_t = t
+            closest_category = "organism"
+
+    return closest_t, closest_category
+
+
+def ray_to_input(distance, category, max_length):
+    distance_normalized = distance / max_length
+    one_hot = [0] * len(RAY_CATEGORIES)
+    if category is not None:
+        one_hot[RAY_CATEGORIES.index(category)] = 1
+    return [distance_normalized] + one_hot
 
 
 class Organism:
@@ -44,7 +141,9 @@ class Organism:
         self.vision = genome.vision
 
         # Exploration
-        self.wandering_noise = OU_Noise(mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA)
+        self.wandering_noise = OU_Noise(
+            mu=NOISE_MU, theta=NOISE_THETA, sigma=NOISE_SIGMA
+        )
         self.current_noise = 0
         # Position
         self.x = x
@@ -66,10 +165,17 @@ class Organism:
 
         # Brain
         self.brain = genome.brain
+        self.ray_sensor = genome.ray_sensor
+        self.rays = []
+        self.brain_inputs = []
+        self.brain_outputs = []
+
+        # Sprite
+        self.image = ORGANISM_SPRITE
 
     # UPDATE
 
-    def update(self, food_grid, dt):
+    def update(self, food_grid, organism_grid, dt):
         self.age += dt
         self.time_since_food += dt
 
@@ -79,11 +185,12 @@ class Organism:
 
         self.current_noise = self.wandering_noise.step(dt)
 
-        inputs = self.get_brain_inputs(food_grid)
-        outputs = self.brain.predict(inputs)
+        self.brain_inputs = self.get_brain_inputs(food_grid, organism_grid)
 
-        turn = outputs[0]
-        movement = (outputs[1] + 1) / 2
+        self.brain_outputs = self.brain.predict(self.brain_inputs)
+
+        turn = self.brain_outputs[0]
+        movement = (self.brain_outputs[1] + 1) / 2
 
         actual_speed = movement * self.speed
 
@@ -106,7 +213,6 @@ class Organism:
 
         frame_distance = math.hypot(self.x - old_x, self.y - old_y)
 
-
         velocity = frame_distance / dt if dt > 0 else 0
 
         if velocity < IDLE_VELOCITY_TRESHOLD:
@@ -117,50 +223,59 @@ class Organism:
 
     # SENSORS
 
-    def get_brain_inputs(self, food_grid):
-        closest_food = None
-        closest_distance = self.vision
+    def cast_rays(self, food_grid, organism_grid):
+        half_fov = RAY_FOV / 2
+        rays = []
+
+        nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
 
         nearby_food = food_grid.query(self.x, self.y, self.vision)
 
-        for food in nearby_food:
-            distance = math.hypot(self.x - food.x, self.y - food.y)
+        for i in range(NUM_RAYS):
+            if NUM_RAYS == 1:
+                offset = 0
+            else:
+                offset = -half_fov + (RAY_FOV * i / (NUM_RAYS - 1))
 
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_food = food
+            ray_angle = self.angle + offset
+            distance, category = cast_ray(
+                self.x,
+                self.y,
+                ray_angle,
+                self.vision,
+                nearby_food,
+                nearby_organisms,
+                self,
+            )
 
-        if closest_food is not None:  # Calculate angle to closest food
+            rays.append(
+                {
+                    "angle": ray_angle,
+                    "distance": distance,
+                    "category": category,
+                    "input": ray_to_input(distance, category, self.vision),
+                }
+            )
 
-            direction_x = closest_food.x - self.x
-            direction_y = closest_food.y - self.y
+        return rays
 
-            angle_to_food = math.atan2(direction_y, direction_x)
-            angle_difference = angle_to_food - self.angle
+    def get_brain_inputs(self, food_grid, organism_grid):
+        self.rays = self.cast_rays(food_grid, organism_grid)
 
-            return [
-                self.energy / MAX_ENERGY,
-                1,
-                closest_distance / self.vision,
-                math.sin(angle_difference),
-                math.cos(angle_difference),
-                min(self.time_since_food / 100, 1),
-                self.current_noise,
-            ]
+        ray_inputs = [r["input"] for r in self.rays]
+        ray_summaries = self.ray_sensor.process(ray_inputs)
 
-        else:
-            return self.no_food_in_vision()
+        food_visible = any(r["category"] == "food" for r in self.rays)
 
-    def no_food_in_vision(self):
-        return [
+        gated_noise = 0 if food_visible else self.current_noise
+
+        global_inputs = [
             self.energy / MAX_ENERGY,
-            0,
-            1,
-            0,
-            0,
             min(self.time_since_food / 100, 1),
-            self.current_noise,
+            gated_noise,
         ]
+
+        return ray_summaries + global_inputs
 
     # FOOD
 
@@ -189,9 +304,56 @@ class Organism:
         return distance <= self.radius + SELECTION_CLICK_PADDING
 
     def draw(self, screen, camera):
+        if self.is_dead():
+            return
 
         screen_x, screen_y = camera.world_to_screen(self.x, self.y)
 
         radius = max(1, int(self.radius * camera.zoom))
 
-        pygame.draw.circle(screen, ORGANISM_COLOR, (screen_x, screen_y), radius)
+        scale = camera.zoom
+
+        image = pygame.transform.scale(
+            self.image,
+            (
+                int(self.image.get_width() * scale),
+                int(self.image.get_height() * scale),
+            ),
+        )
+
+        angle_degrees = -math.degrees(self.angle) - 90
+
+        image = pygame.transform.rotate(image, angle_degrees)
+
+        rect = image.get_rect(center=(screen_x, screen_y))
+        screen.blit(image, rect)
+
+    def draw_rays(self, screen, camera):
+        rays = self.rays
+
+        origin_x, origin_y = camera.world_to_screen(self.x, self.y)
+
+        for ray in rays:
+            end_x = self.x + math.cos(ray["angle"]) * ray["distance"]
+            end_y = self.y + math.sin(ray["angle"]) * ray["distance"]
+            screen_end_x, screen_end_y = camera.world_to_screen(end_x, end_y)
+
+            if ray["category"] == "food":
+                color = (80, 220, 80)
+            elif ray["category"] == "obstacle":
+                color = (255, 255, 0)
+            elif ray["category"] == "organism":
+                color = (48, 92, 222)
+            else:
+                color = (140, 140, 140)
+
+            pygame.draw.line(
+                screen,
+                color,
+                (origin_x, origin_y),
+                (screen_end_x, screen_end_y),
+                1,
+            )
+
+            if ray["category"] is not None:
+                pygame.draw.circle(screen, color, (screen_end_x, screen_end_y), 4)

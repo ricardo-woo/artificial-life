@@ -24,18 +24,9 @@ class UIManager:
     def __init__(self, font):
         self.font = font
 
-    def draw_world_border(
-        self,
-        screen,
-        camera,
-        world_width,
-        world_height
-    ):
+    def draw_world_border(self, screen, camera, world_width, world_height):
         top_left = camera.world_to_screen(0, 0)
-        bottom_right = camera.world_to_screen(
-            world_width,
-            world_height
-        )
+        bottom_right = camera.world_to_screen(world_width, world_height)
 
         world_border = pygame.Rect(
             top_left[0],
@@ -44,22 +35,11 @@ class UIManager:
             bottom_right[1] - top_left[1],
         )
 
-        pygame.draw.rect(
-            screen,
-            COLOR_BORDER,
-            world_border,
-            BORDER_THICKNESS
-        )
+        pygame.draw.rect(screen, COLOR_BORDER, world_border, BORDER_THICKNESS)
 
-    def draw_leaderboard(
-        self,
-        screen,
-        top_organisms,
-        generation_num
-    ):
+    def draw_leaderboard(self, screen, top_organisms, generation_num):
         overlay = pygame.Surface(
-            (screen.get_width(), screen.get_height()),
-            pygame.SRCALPHA
+            (screen.get_width(), screen.get_height()), pygame.SRCALPHA
         )
 
         overlay.fill(COLOR_OVERLAY)
@@ -68,22 +48,18 @@ class UIManager:
         title_text = self.font.render(
             f"--- Generation {generation_num} Leaderboard ---",
             True,
-            COLOR_LEADERBOARD_TITLE
+            COLOR_LEADERBOARD_TITLE,
         )
 
         screen.blit(
             title_text,
             (
-                screen.get_width() // 2
-                - title_text.get_width() // 2,
-                int(screen.get_height() * 0.10)
-            )
+                screen.get_width() // 2 - title_text.get_width() // 2,
+                int(screen.get_height() * 0.10),
+            ),
         )
 
-        y = int(
-            screen.get_height()
-            * LEADERBOARD_Y_PERCENT
-        )
+        y = int(screen.get_height() * LEADERBOARD_Y_PERCENT)
 
         for i, org in enumerate(top_organisms[:5], 1):
             text = self.font.render(
@@ -91,200 +67,128 @@ class UIManager:
                 f"Food Eaten: {org.food_eaten} | "
                 f"Age: {org.age:.1f}",
                 True,
-                COLOR_TEXT_PRIMARY
+                COLOR_TEXT_PRIMARY,
             )
 
-            screen.blit(
-                text,
-                (
-                    screen.get_width() // 2
-                    - text.get_width() // 2,
-                    y
-                )
-            )
+            screen.blit(text, (screen.get_width() // 2 - text.get_width() // 2, y))
 
             y += LEADERBOARD_Y_STEP
 
         prompt_text = self.font.render(
-            "Press [ENTER] to start next generation",
-            True,
-            COLOR_PROMPT
+            "Press [ENTER] to start next generation", True, COLOR_PROMPT
         )
 
         screen.blit(
             prompt_text,
-            (
-                screen.get_width() // 2
-                - prompt_text.get_width() // 2,
-                y + 60
-            )
+            (screen.get_width() // 2 - prompt_text.get_width() // 2, y + 60),
         )
 
     def draw_selection_and_hud(
-        self,
-        screen,
-        camera,
-        selected_organism,
-        food_grid
+        self, screen, camera, selected_organism, food_grid, organism_grid
     ):
         if selected_organism is None:
             return
 
         screen_x, screen_y = camera.world_to_screen(
-            selected_organism.x,
-            selected_organism.y
+            selected_organism.x, selected_organism.y
         )
-
-        # Vision radius circle
         pygame.draw.circle(
             screen,
             COLOR_VISION_CIRCLE,
             (screen_x, screen_y),
-            int(
-                selected_organism.vision
-                * camera.zoom
-            ),
+            int(selected_organism.vision * camera.zoom),
             1,
         )
 
-        brain_inputs = (
-            selected_organism.get_brain_inputs(food_grid)
-        )
+        selected_organism.draw_rays(screen, camera)
 
-        brain_outputs = (
-            selected_organism.brain.predict(
-                brain_inputs
-            )
-        )
+        rays = selected_organism.rays
+
+        brain_inputs = selected_organism.brain_inputs
+
+        brain_outputs = selected_organism.brain_outputs
 
         stats = [
             f"Energy: {selected_organism.energy:.1f}",
             f"Speed: {selected_organism.speed:.2f}",
             f"Vision: {selected_organism.vision:.1f}",
-            f"Brain Inputs:",
-            f"  Energy:     {brain_inputs[0]:.2f}",
-            f"  Food?:      {brain_inputs[1]:.1f}",
-            f"  Distance:   {brain_inputs[2]:.2f}",
-            f"  Angle (sin): {brain_inputs[3]:.2f}",
-            f"  Angle (cos): {brain_inputs[4]:.2f}",
-            f"  Time Food:  {brain_inputs[5]:.2f}",
-            f"  Noise:      {brain_inputs[6]:.2f}",
-            f"Brain Outputs:",
-            f"  Turn:       {brain_outputs[0]:.2f}",
-            f"  Movement:   {brain_outputs[1]:.2f}",
+            f"Rays (raw):",
         ]
 
-        x = int(
-            screen.get_width()
-            * HUD_RIGHT_X_PERCENT
-        )
+        for i, ray in enumerate(rays):
+            label = ray["category"] if ray["category"] else "---"
+            stats.append(f"  {i}: {ray['distance']:5.0f}u  {label}")
 
-        y = int(
-            screen.get_height()
-            * HUD_RIGHT_Y_PERCENT
+        stats.append("Ray-kernel summaries:")
+        stats.append("  " + ", ".join(f"{v:.2f}" for v in brain_inputs[:-3]))
+        stats.append(
+            f"Energy in: {brain_inputs[-3]:.2f}  "
+            f"TimeSinceFood: {brain_inputs[-2]:.2f}  "
+            f"Noise: {brain_inputs[-1]:.2f}"
         )
+        stats.append("Brain Outputs:")
+        stats.append(f"  Turn:     {brain_outputs[0]:.2f}")
+        stats.append(f"  Movement: {brain_outputs[1]:.2f}")
+
+        x = int(screen.get_width() * HUD_RIGHT_X_PERCENT)
+
+        y = int(screen.get_height() * HUD_RIGHT_Y_PERCENT)
 
         for stat in stats:
-            text = self.font.render(
-                stat,
-                True,
-                COLOR_TEXT_PRIMARY
-            )
+            text = self.font.render(stat, True, COLOR_TEXT_PRIMARY)
 
-            screen.blit(
-                text,
-                (x, y)
-            )
+            screen.blit(text, (x, y))
 
             y += HUD_LINE_SPACING
 
-    def draw_live_leaderboard(self,screen,organisms):
-        sorted_organisms = sorted(
-            organisms,
-            key=lambda org: org.fitness,
-            reverse=True
-        )
+    def draw_live_leaderboard(self, screen, organisms):
+        sorted_organisms = sorted(organisms, key=lambda org: org.fitness, reverse=True)
         leaderboard_rows = []
 
-        x = int(
-            screen.get_width()
-            * HUD_X_PERCENT
-        )
+        x = int(screen.get_width() * HUD_X_PERCENT)
 
-        y = int(
-            screen.get_height()
-            * LEADERBOARD_Y_PERCENT
-        )
+        y = int(screen.get_height() * LEADERBOARD_Y_PERCENT)
 
-        for i, org in enumerate(
-            sorted_organisms[:10],
-            1
-        ):
-            row_rect = pygame.Rect(
-                x,
-                y,
-                400,
-                LEADERBOARD_Y_STEP
-            )
+        for i, org in enumerate(sorted_organisms[:10], 1):
+            row_rect = pygame.Rect(x, y, 400, LEADERBOARD_Y_STEP)
 
             text = self.font.render(
                 f"{i}.  {org.fitness:.1f}, "
                 f"Food: {org.food_eaten}, "
                 f"Age: {org.age:.1f}",
                 True,
-                COLOR_TEXT_PRIMARY
+                COLOR_TEXT_PRIMARY,
             )
 
-            screen.blit(
-                text,
-                (x, y)
-            )
+            screen.blit(text, (x, y))
 
-            leaderboard_rows.append(
-                (row_rect, org)
-            )
+            leaderboard_rows.append((row_rect, org))
 
             y += LEADERBOARD_Y_STEP
 
         return leaderboard_rows
 
-    def draw_debug(self,screen,organisms,foods,generation_num,generation_time,fps
+    def draw_debug(
+        self, screen, organisms, foods, generation_num, generation_time, fps
     ):
         debug_info = [
             f"Current Generation: {generation_num}",
             f"Generation Time:    {generation_time:.1f}s",
             f"Food Available:     {len(foods)}",
-            f"Organisms Alive:    {len(organisms)}",
             f"FPS:                {fps:.1f}",
         ]
 
-        x = int(
-            screen.get_width()
-            * HUD_X_PERCENT
-        )
+        x = int(screen.get_width() * HUD_X_PERCENT)
 
-        y = int(
-            screen.get_height()
-            * HUD_Y_PERCENT
-        )
+        y = int(screen.get_height() * HUD_Y_PERCENT)
 
         for info in debug_info:
-            text = self.font.render(
-                info,
-                True,
-                COLOR_TEXT_PRIMARY
-            )
+            text = self.font.render(info, True, COLOR_TEXT_PRIMARY)
 
-            screen.blit(
-                text,
-                (x, y)
-            )
+            screen.blit(text, (x, y))
 
             y += HUD_LINE_SPACING
 
-        leaderboard_rows = self.draw_live_leaderboard(
-            screen,
-            organisms
-        )
+        leaderboard_rows = self.draw_live_leaderboard(screen, organisms)
 
         return leaderboard_rows

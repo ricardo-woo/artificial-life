@@ -1,14 +1,15 @@
 import pygame
+import math
 
 # Display & World
 WIDTH = 1280
 HEIGHT = 720
 FPS = 60
 
-WORLD_WIDTH = 12000
-WORLD_HEIGHT = 12000
+WORLD_WIDTH = 1500
+WORLD_HEIGHT = 1500
 
-SPATIAL_CELL_SIZE = 400
+SPATIAL_CELL_SIZE = 50
 
 BACKGROUND_COLOR = (20, 20, 20)
 
@@ -21,16 +22,16 @@ MAX_ZOOM = 100
 FAST_FORWARD_SPEED = 20
 DEFAULT_SIMULATION_SPEED = 1
 
-GENERATION_END_WAIT_TIME = 5 #Set to 0 for auto advance
+GENERATION_END_WAIT_TIME = 5  # Set to 0 for auto advance
 
-POPULATION_SIZE = 300
+POPULATION_SIZE = 100
 PARENT_COUNT = 10
 
 # Bush
-BUSH_COUNT = 100
+BUSH_COUNT = 20
 
 # Food
-FOOD_COUNT = 600
+FOOD_COUNT = 150
 FOOD_RESPAWN_INTERVAL = 20
 FOOD_ENERGY_VAL = 50
 FOOD_RADIUS = 4
@@ -59,11 +60,11 @@ FITNESS_AGE_DIVISOR = 100
 
 NOISE_MU = 0.0
 NOISE_THETA = 0.5
-NOISE_SIGMA = 0.8
+NOISE_SIGMA = 2.5
 
 # Genome & Mutation
 MIN_SPEED = 0.1
-MAX_SPEED = 10
+MAX_SPEED = 20
 
 MIN_VISION = 80
 MAX_VISION = 500
@@ -74,14 +75,19 @@ MAX_RADIUS = 15
 MIN_TURN_SPEED = 0.01
 MAX_TURN_SPEED = 2
 
+NUM_RAYS = 10
+RAY_FOV = math.radians(200)
+RAY_CATEGORIES = ["food", "obstacle", "organism"]
+VALUES_PER_RAY = 1 + len(RAY_CATEGORIES)
+
 MUTATE_SPEED_STEP = 0.1
 MUTATE_VISION_STEP = 5
 MUTATE_RADIUS_STEP = 0.5
 MUTATE_TURN_SPEED_STEP = 0.05
 
 # Neural Network
-INPUTS = 7
-HIDDEN = 5
+INPUTS = NUM_RAYS + 3
+HIDDEN = 10
 OUTPUTS = 2
 
 WEIGHT = 5
@@ -113,19 +119,21 @@ LEADERBOARD_Y_STEP = 30
 
 # Controls
 KEY_PAUSE_SELECTION = pygame.K_ESCAPE  # Clear selected organism & target
-KEY_FOLLOW_ORGANISM = pygame.K_f       # Lock camera onto selected organism
-KEY_FAST_FORWARD    = pygame.K_SPACE   # Hold to speed up simulation
+KEY_FOLLOW_ORGANISM = pygame.K_f  # Lock camera onto selected organism
+KEY_FAST_FORWARD = pygame.K_SPACE  # Hold to speed up simulation
 KEY_NEXT_GENERATION = pygame.K_RETURN  # Skip wait screen on generation end
-KEY_DEBUG = pygame.K_F3   #Opens debug information
+KEY_DEBUG = pygame.K_F3  # Opens debug information
 
 # Persistence & Logging
 SAVE_FILE_PATH = "save.json"
 CSV_LOG_PATH = "experiment_log.csv"
-SAVE_INTERVAL_MS = 60000    # Auto-save every 60 seconds real time
+SAVE_INTERVAL_MS = 60000  # Auto-save every 60 seconds real time
 
 FLOAT_ROUND_PRECISION = 2
 JSON_INDENT = 4
 
 # Assets
 BUSH_IMAGE = pygame.image.load("assets/bush.png")
+ORGANISM_SPRITE = pygame.image.load("assets/organism.png")
+ORB_FOOD_SPRITE = pygame.image.load("assets/orb_food.png")
 FOOD_BUSH_RADIUS = 150

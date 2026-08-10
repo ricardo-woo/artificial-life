@@ -13,10 +13,27 @@ from Population import Population
 from SaveManager import SaveManager
 from spatialgrid import SpatialGrid
 from settings import (
-    BACKGROUND_COLOR, FAST_FORWARD_SPEED, FOOD_COUNT, FOOD_ENERGY_VAL, SPATIAL_CELL_SIZE,
-    FOOD_RESPAWN_INTERVAL, FPS, GENERATION_END_WAIT_TIME, HEIGHT, KEY_FAST_FORWARD,
-    KEY_FOLLOW_ORGANISM, KEY_NEXT_GENERATION, KEY_PAUSE_SELECTION, MAX_ENERGY, BUSH_COUNT,
-    SAVE_INTERVAL_MS, WIDTH, WORLD_HEIGHT, WORLD_WIDTH, SAVE_FILE_PATH, KEY_DEBUG
+    BACKGROUND_COLOR,
+    FAST_FORWARD_SPEED,
+    FOOD_COUNT,
+    FOOD_ENERGY_VAL,
+    SPATIAL_CELL_SIZE,
+    FOOD_RESPAWN_INTERVAL,
+    FPS,
+    GENERATION_END_WAIT_TIME,
+    HEIGHT,
+    KEY_FAST_FORWARD,
+    KEY_FOLLOW_ORGANISM,
+    KEY_NEXT_GENERATION,
+    KEY_PAUSE_SELECTION,
+    MAX_ENERGY,
+    BUSH_COUNT,
+    SAVE_INTERVAL_MS,
+    WIDTH,
+    WORLD_HEIGHT,
+    WORLD_WIDTH,
+    SAVE_FILE_PATH,
+    KEY_DEBUG,
 )
 from Simulation.SimulationClock import SimulationClock
 from ui import UIManager
@@ -50,9 +67,15 @@ organisms = []
 
 if os.path.exists(SAVE_FILE_PATH):
     organisms, generation, generation_simulation_time = save_manager.load_game()
+
+    population.organism_grid.clear()
+
+    for organism in organisms:
+        population.organism_grid.insert(organism, organism.x, organism.y)
 else:
     generation = 1
     organisms = population.create_initial_population(organisms)
+
 
 food_respawn_timer = 0
 foods = []
@@ -109,7 +132,6 @@ while running:
                         foods.append(new_food)
                         food_grid.insert(new_food, new_food.x, new_food.y)
 
-
                     waiting_for_next_gen = False
                     generation_simulation_time = 0
                     food_respawn_timer = 0
@@ -123,7 +145,6 @@ while running:
                         camera.following = selected_organism
 
                 elif event.key == KEY_FAST_FORWARD:
-                    # Toggle fast-forward state
                     is_fast_forwarding = not is_fast_forwarding
                     simulation_clock.speed = (
                         FAST_FORWARD_SPEED if is_fast_forwarding else 1
@@ -160,7 +181,7 @@ while running:
             food_grid.clear()
             for _ in range(FOOD_COUNT):
                 new_food = Food(bushes)
-                foods.append( new_food)
+                foods.append(new_food)
                 food_grid.insert(new_food, new_food.x, new_food.y)
             waiting_for_next_gen = False
             generation_simulation_time = 0
@@ -173,13 +194,17 @@ while running:
         dt = 0
 
     if not waiting_for_next_gen:
+
         for organism in organisms:
             if organism.is_dead():
+                population.organism_grid.remove(organism)
                 continue
 
-            organism.update(food_grid, dt)
+            organism.update(food_grid, population.organism_grid, dt)
 
-            nearby_food = food_grid.query( organism.x, organism.y, organism.vision)
+            population.update_organism_position(organism)
+
+            nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
 
             for food in nearby_food:
 
@@ -188,19 +213,17 @@ while running:
 
                 if organism.eat(food):
                     organism.food_eaten += 1
-                    organism.energy = min(
-                        MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL
-                    )
+                    organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
                     organism.time_since_food = 0
                     foods.remove(food)
-                    food_grid.remove(food, food.x, food.y)
+                    food_grid.remove(food)
                     break
 
         food_respawn_timer += dt
         while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:
-            new_food=Food(bushes)
+            new_food = Food(bushes)
             foods.append(new_food)
-            food_grid.insert(new_food, new_food.x,new_food.y)
+            food_grid.insert(new_food, new_food.x, new_food.y)
             food_respawn_timer -= FOOD_RESPAWN_INTERVAL
 
         if selected_organism is not None:
@@ -238,15 +261,21 @@ while running:
     for organism in organisms:
         organism.draw(screen, camera)
 
-    ui_manager.draw_selection_and_hud(screen, camera, selected_organism, food_grid)
+    ui_manager.draw_selection_and_hud(
+        screen, camera, selected_organism, food_grid, population.organism_grid
+    )
 
     if waiting_for_next_gen:
         ui_manager.draw_leaderboard(screen, top_organism_snapshot, generation)
 
     if debug_open:
         leaderboard_rows = ui_manager.draw_debug(
-            screen, organisms, foods, generation, generation_simulation_time,
-            clock.get_fps()
+            screen,
+            organisms,
+            foods,
+            generation,
+            generation_simulation_time,
+            clock.get_fps(),
         )
 
     pygame.display.flip()
