@@ -83,7 +83,9 @@ class UIManager:
             (screen.get_width() // 2 - prompt_text.get_width() // 2, y + 60),
         )
 
-    def draw_selection_and_hud(self, screen, camera, selected_organism, food_grid):
+    def draw_selection_and_hud(
+        self, screen, camera, selected_organism, food_grid, organism_grid
+    ):
         if selected_organism is None:
             return
 
@@ -98,13 +100,13 @@ class UIManager:
             1,
         )
 
-        selected_organism.draw_rays(screen, camera, food_grid)
+        selected_organism.draw_rays(screen, camera)
 
-        rays = selected_organism.cast_rays(food_grid)
+        rays = selected_organism.rays
 
-        brain_inputs = selected_organism.get_brain_inputs(food_grid)
+        brain_inputs = selected_organism.brain_inputs
 
-        brain_outputs = selected_organism.brain.predict(brain_inputs)
+        brain_outputs = selected_organism.brain_outputs
 
         stats = [
             f"Energy: {selected_organism.energy:.1f}",
