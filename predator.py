@@ -1,6 +1,6 @@
 from organism import Organism
 
-from settings import MAX_ENERGY, PREDATOR_SPRITE
+from settings import MAX_ENERGY, PREDATOR_SPRITE, RAY_FOV_PREDATORS
 
 
 class Predator(Organism):
@@ -10,6 +10,8 @@ class Predator(Organism):
         self.type = "predator"
 
         self.image = PREDATOR_SPRITE
+
+        self.ray_fov = RAY_FOV_PREDATORS
 
     def update(self, food_grid, organism_grid, dt):
         return super().update(food_grid, organism_grid, dt)
