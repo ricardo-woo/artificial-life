@@ -207,6 +207,8 @@ while running:
         population.organism_grid.remove(dead_organism)
         organisms.remove(dead_organism)
 
+    population.update_extinctions(organisms, dt)
+
     food_respawn_timer += dt
     while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:
         new_food = Food(bushes)
