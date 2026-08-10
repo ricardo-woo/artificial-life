@@ -97,7 +97,7 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, orga
 
         if 0 <= t < closest_t:
             closest_t = t
-            closest_category = "organism"
+            closest_category = obj.type
 
     return closest_t, closest_category
 
