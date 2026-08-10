@@ -4,7 +4,11 @@ import os
 
 from Brain.Genome import Genome
 from organism import Organism
+from predator import Predator
+from prey import Prey
 from settings import SAVE_FILE_PATH, CSV_LOG_PATH, FLOAT_ROUND_PRECISION, JSON_INDENT
+
+SPECIES_BY_TYPE = {"predator": Predator, "prey": Prey}
 
 
 class SaveManager:
@@ -120,7 +124,11 @@ class SaveManager:
         for organism_data in data["organisms"]:
             genome = Genome.from_data(organism_data["genome"])
 
-            organism = Organism(organism_data["x"], organism_data["y"], genome)
+            # Old saves (pre-predators branch) won't have a "type" key -
+            # treat those as prey rather than crashing on load.
+            species = SPECIES_BY_TYPE.get(organism_data.get("type"), Prey)
+
+            organism = species(organism_data["x"], organism_data["y"], genome)
 
             organism.energy = organism_data["energy"]
             organism.age = organism_data["age"]
