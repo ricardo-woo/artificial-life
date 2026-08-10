@@ -25,7 +25,6 @@ from settings import (
     NUM_RAYS,
     RAY_FOV,
     RAY_CATEGORIES,
-    ORGANISM_SPRITE,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_AGE,
 )
@@ -177,7 +176,7 @@ class Organism:
         self.brain_outputs = []
 
         # Sprite
-        self.image = ORGANISM_SPRITE
+        self.image = None
 
         # Reproduction
         self.next_reproduction = REPRODUCTION_AGE
@@ -357,8 +356,10 @@ class Organism:
                 color = (80, 220, 80)
             elif ray["category"] == "obstacle":
                 color = (255, 255, 0)
-            elif ray["category"] == "organism":
+            elif ray["category"] == "prey":
                 color = (48, 92, 222)
+            elif ray["category"] == "predator":
+                color = (255, 0, 56)
             else:
                 color = (140, 140, 140)
 

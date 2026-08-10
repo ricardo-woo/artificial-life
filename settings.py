@@ -146,6 +146,7 @@ JSON_INDENT = 4
 
 # Assets
 BUSH_IMAGE = pygame.image.load("assets/bush.png")
-ORGANISM_SPRITE = pygame.image.load("assets/organism.png")
+PREY_SPRITE = pygame.image.load("assets/prey.png")
+PREDATOR_SPRITE = pygame.image.load("assets/predator.png")
 ORB_FOOD_SPRITE = pygame.image.load("assets/orb_food.png")
 FOOD_BUSH_RADIUS = 150
