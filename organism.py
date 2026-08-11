@@ -26,7 +26,6 @@ from settings import (
     RAY_CATEGORIES,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_AGE,
-    RAY_CATEGORY_VALUES,
 )
 from noise import OU_Noise
 
