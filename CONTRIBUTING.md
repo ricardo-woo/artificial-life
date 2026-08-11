@@ -7,7 +7,6 @@ Thanks for your interest in contributing to Artificial Life!
 ### Requirements
 
 * Python 3.10 or newer
-* Git
 
 ### Installation
 
