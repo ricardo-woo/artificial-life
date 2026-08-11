@@ -1,88 +1,92 @@
-# Artificial Life
+# Artificial Life: An Evolutionary Simulation
 
-An evolutionary artificial life simulation built with Python and Pygame.
+Welcome to this artificial life simulation built using Python and Pygame. This project is a virtual ecosystem where organisms rely on neural networks to navigate, survive and evolve over time. 
 
-The Organisms live in a 2D world, search for food, manage their energy and evolve over generations. Their behavior is controlled by neural networks whose weights and physical traits mutate between generations.
+The world is divided into two distinct species, the predators and prey. Because each species has its own unique genome and neural network, you get to watch entirely different survival strategies emerge through evolution.
 
-This project started as a way for me to learn about neural networks, so expect some mistakes. Feedback on the network architecture, mutation logic or really anything are very welcome!
+## How the ecosystem works
 
-![Simulation](assets/simulation_ss.png)
+The simulation takes place in a continuous 2D environment populated by food, prey and predators. 
 
-## Instructions if you want to try it
+Every creature here operates based on a personal genome that dictates its physical traits, paired with a neural network that acts as its brain. During each update cycle, an organism scans its surroundings by casting visual rays. It takes what it sees, translates that into numerical data and feeds it into its neural network. The network then decides two things: how fast to move, and how much to turn.
 
-### Requirements
-- Python 3.10+
-- Pygame
+Moving and simply existing costs energy, which can only be replenished by eating. Once an organism lives long enough and hoards enough energy, it can reproduce. The offspring gets a copy of its parent's genome, usually with a few random mutations. 
 
-### Installation
+To keep the simulation running smoothly, we cap the population size for each species by culling the weakest links when it gets too crowded.
 
-Clone the repo and install dependencies:
+---
 
-```bash
-git clone https://github.com/ricardo-woo/artificial-life.git
-cd artificial-life
-pip install -r requirements.txt
-```
+## The organisms / entities
 
-### How you can tweak the projects parameters
+Everything stems from a base `Organism` class. This gives every creature a set of core attributes. It also houses the neural network, genome and ray casting sensors. 
 
-The simulations main parameters can be configured in `settings.py`.
+The physical traits aren't hardcoded, they are drawn directly from the genome, meaning evolution shapes both the body and the mind.
 
-Adjusting `settings.py` allows experiments to be run without changing the core simulation code.
+### Prey
+Prey's main goal is finding food and staying alive. They have a wide 200° field of view and use their ray sensors to detect food, obstacles, their peers and approaching predators. To help them survive, they reach reproductive age a bit earlier than the baseline organism settings.
 
-### Running the simulation
+### Predators
+Predators share the same genetic building blocks but have entirely different habits. They have a narrower, more focused 120° field of view. Instead of scanning the grid for food, their sensors are tuned to detect prey, obstacles, and other predators. 
 
-```bash
-python main.py
-```
+To actually have a meal, a predator has to catch a prey inside its 120° attack angle. If the attack succeeds, the prey dies and the predator absorbs its remaining energy.
 
-## How the simulation works at the moment
+---
 
-Each organism has:
-* Energy
-* Age
-* Speed
-* Vision
-* Radius
-* Turning ability
-* A neural network
+## How the genome works
 
-The neural network receives information about the organism environment and produces movement decisions.
+An organism's genome dictates everything about it. It stores physical traits alongside its behavioral traits. 
 
-Organisms that survive longer and find more food have higher fitness and are more likely to contribute to the next generation.
+When a creature is spawned, its physical traits are randomized within set limits. When it reproduces, its whole genome is passed down. Because evolution tweaks both the physical and the neurological, you'll see changes in both what the creatures look like and how they behave.
 
-### Evolution
+## Neural networks
 
-Physical traits and neural network parameters mutate between generations.
+Each organism is driven by a simple neural network made up of an input layer, a hidden layer and an output layer. 
 
-The fitness function currently rewards food consumption, survival and movement:
+The neurons calculate a weighted sum of their inputs and pass it through a standard hyperbolic tangent (tanh) activation function. This squashes the neuron outputs to a value between `-1` and `1`. 
 
-```python
-fitness = (
-            self.food_eaten * FITNESS_FOOD_WEIGHT
-            + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
-        )
-```
+These brains aren't trained using traditional machine learning methods like backpropagation. Instead, they learn purely through Darwinian evolution weights and biases are inherited and mutated generation after generation.
 
-### Neural Network
+### How they see and think
+The network makes decisions based on a stream of inputs. First, it takes in the flattened data from the organism's ray sensors. Then, it mixes in three global inputs:
+1. Current energy
+2. How long it's been since it last saw food
+3. An exploration noise signal 
 
-Each organism has a small neural network that receives information about its environment and produces movement decisions.
+Predators only use the exploration signal if they haven't spotted a prey.
 
-#### Inputs
-* Energy
-* Food detected
-* Distance to closest food
-* Sin(angle to closest food)
-* Cos(angle to closest food)
-* Time since food was detected
-* Exploration signal using Ornstein-Uhlenbeck process
+Based on all this, the network spits out two outputs:
+1. Turn: Scaled by the organism's max turn speed to dictate steering.
+2. Movement: Converted from a `[-1, 1]` range to a `[0, 1]` range, then multiplied by the organism's max speed. 
 
-#### Outputs
-* Turn
-* Movement
+### Ray sensors
+To perceive the world, organisms cast a configurable number of rays spread evenly across their field of view. 
 
-![Neural Network Architecture](assets/neural_network.svg)
+It calculates if a ray intersects with an object's radius, finding the exact distance to the closest obstacle, food, or creature. 
 
-## Project Status
+The network receives this as a normalized distance (`distance / vision`) and an encoded category:
+* Food: `[1, 0, 0, 0]`
+* Obstacle: `[0, 1, 0, 0]`
+* Prey: `[0, 0, 1, 0]`
+* Predator: `[0, 0, 0, 1]`
 
-This is an ongoing project. The simulation and evolutionary system are still being developed and tested.
+If a ray hits nothing, it just returns all zeros.
+
+---
+
+## Reproduction and mutation
+
+Once an organism is old enough and has enough energy, it reproduces. This costs the parent some energy, and a new offspring spawns nearby. 
+
+About 10% of the time, the offspring is an exact clone. The rest of the time, the genome mutates:
+* Physical traits shift by a small random value.
+* Neural network weights and biases each have a chance to mutate by a configured strength.
+
+This slow accumulation of tiny changes is what drives the evolutionary behavior of the ecosystem.
+
+---
+
+## Optimizations & Math
+
+* Spatial Partitioning: The map is divided into a grid. Organisms only check for objects in the specific grid cells they overlap with, keeping performance snappy even with large populations.
+* Exploration Noise (Ornstein-Uhlenbeck): When an organism can't see anything useful, it relies on an exploration signal to wander around. Instead of giving random noise, the simulation uses an Ornstein-Uhlenbeck process. This creates a drifting random value, resulting in natural looking wandering rather than erratic twitching.
+* Poisson Disk Sampling: When generating static objects like bushes, purely random placement often results in ugly clusters and empty spaces. Poisson disk sampling solves this by ensuring every generated point maintains a minimum distance from the others, creating a natural evenly distributed landscape.
