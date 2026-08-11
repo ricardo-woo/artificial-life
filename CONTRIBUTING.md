@@ -2,43 +2,78 @@
 
 Thanks for your interest in contributing to Artificial Life!
 
-## Getting Started
+## Setting Up the Project
 
-1. Fork the repository.
-2. Create a branch for your changes.
-3. Make your changes and test them.
-4. Open a pull request with a short description of what you changed and why.
+### Requirements
 
-## Branch & Settings Guidelines
+* Python 3.10 or newer
+* Git
 
-* **Do not commit local test values to `settings.py`.** If you adjusted constants (e.g., speed, mutation rates, UI flags) for personal testing, revert them before pushing.
-* PRs that modify `settings.py` will only be approved if they:
+### Installation
 
-  1. Add new feature configuration constants required by new code.
-  2. Represent an agreed-upon balance pass discussed in an issue first.
-
-### Local Settings
-
-If you frequently experiment with values in `settings.py`, you can tell Git to locally ignore changes to the file:
+Clone the repository:
 
 ```bash
-git update-index --assume-unchanged settings.py
+git clone https://github.com/ricardo-woo/artificial-life.git
+cd artificial-life
 ```
 
-If you later need to make a legitimate change to `settings.py` that should be committed, re-enable tracking:
+Create a virtual environment:
 
 ```bash
-git update-index --no-assume-unchanged settings.py
+python -m venv .venv
 ```
 
-This only affects your local Git repository. It does not change the repository or other contributors' settings.
+Activate it:
 
-## Pull Requests
+**Windows:**
 
-Please include:
+```bash
+.venv\Scripts\activate
+```
 
-* What changed
-* Why it changed
-* How you tested it
+**Linux/macOS:**
 
-For changes affecting evolution, include relevant observations or experiment results when possible.
+```bash
+source .venv/bin/activate
+```
+
+Install the project dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Running the Simulation
+
+Once the dependencies are installed, run:
+
+```bash
+python main.py
+```
+
+### Making Changes
+
+Most simulation parameters can be adjusted in `settings.py`. If you're experimenting with the simulation, changing these values is preferable to modifying the core logic when possible.
+
+For larger changes, try to keep different systems separated into their existing modules. For example:
+
+* `organism.py` — common organism behavior
+* `prey.py` — prey-specific behavior
+* `predator.py` — predator-specific behavior
+* `Population.py` — population and reproduction management
+* `spatialgrid.py` — spatial partitioning
+* `Brain/` — neural network and genome logic
+* `poissondisk.py` — Poisson disk sampling
+
+### Pull Requests
+
+When submitting a pull request:
+
+1. Explain what you changed.
+2. Explain why the change was needed.
+3. Test the simulation before submitting.
+4. Keep changes focused when possible.
+5. Include any relevant observations from experiments or simulations.
+
+For changes to the neural network, evolution, reproduction, or sensing systems, describing the reasoning behind the change is especially helpful.
