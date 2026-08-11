@@ -30,7 +30,7 @@ from settings import (
 from noise import OU_Noise
 
 
-def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
+def distance_to_world_bounds(x, y, dx, dy, max_length):
     t = max_length
 
     if dx > 0:
@@ -48,10 +48,10 @@ def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
 
 def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, organism):
     dx, dy = math.cos(angle), math.sin(angle)
-    wall_t = distance_to_world_bounds(x, y, dx, dy, angle, max_length)
+    wall_t = distance_to_world_bounds(x, y, dx, dy, max_length)
 
     closest_t = wall_t
-    closest_category = None
+    closest_category = "obstacle" if wall_t < max_length else None
 
     if food_candidates:
 

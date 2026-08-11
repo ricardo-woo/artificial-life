@@ -12,6 +12,7 @@ from prey import Prey
 from Population import Population
 from SaveManager import SaveManager
 from spatialgrid import SpatialGrid
+from poissondisk import poisson_disk_sampling
 from settings import (
     BACKGROUND_COLOR,
     FAST_FORWARD_SPEED,
@@ -25,7 +26,7 @@ from settings import (
     KEY_FOLLOW_ORGANISM,
     KEY_PAUSE_SELECTION,
     MAX_ENERGY,
-    BUSH_COUNT,
+    BUSH_MIN_DISTANCE,
     SAVE_INTERVAL_MS,
     WIDTH,
     WORLD_HEIGHT,
@@ -78,9 +79,10 @@ food_respawn_timer = 0
 foods = []
 bushes = []
 
-for _ in range(BUSH_COUNT):
-    bush = Bush(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
-    bushes.append(bush)
+for bush_x, bush_y in poisson_disk_sampling(
+    WORLD_WIDTH, WORLD_HEIGHT, BUSH_MIN_DISTANCE
+):
+    bushes.append(Bush(bush_x, bush_y))
 
 bush_grid.clear()
 
