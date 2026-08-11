@@ -51,7 +51,7 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, orga
     wall_t = distance_to_world_bounds(x, y, dx, dy, angle, max_length)
 
     closest_t = wall_t
-    closest_category = "obstacle" if wall_t < max_length else None
+    closest_category = None
 
     if food_candidates:
 
