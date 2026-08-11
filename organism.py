@@ -23,16 +23,14 @@ from settings import (
     WALK_SPEED_COEFFICIENT,
     RUN_SPEED_COEFFICIENT,
     NUM_RAYS,
-    RAY_FOV,
     RAY_CATEGORIES,
-    ORGANISM_SPRITE,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_AGE,
 )
 from noise import OU_Noise
 
 
-def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
+def distance_to_world_bounds(x, y, dx, dy, max_length):
     t = max_length
 
     if dx > 0:
@@ -50,30 +48,32 @@ def distance_to_world_bounds(x, y, dx, dy, angle, max_length):
 
 def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, organism):
     dx, dy = math.cos(angle), math.sin(angle)
-    wall_t = distance_to_world_bounds(x, y, dx, dy, angle, max_length)
+    wall_t = distance_to_world_bounds(x, y, dx, dy, max_length)
 
     closest_t = wall_t
     closest_category = "obstacle" if wall_t < max_length else None
 
-    for obj in food_candidates:
-        obj_dx, obj_dy = obj.x - x, obj.y - y
+    if food_candidates:
 
-        proj = obj_dx * dx + obj_dy * dy
-        if proj < 0 or proj > closest_t:
-            continue
+        for obj in food_candidates:
+            obj_dx, obj_dy = obj.x - x, obj.y - y
 
-        closest_x, closest_y = x + dx * proj, y + dy * proj
-        center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
+            proj = obj_dx * dx + obj_dy * dy
+            if proj < 0 or proj > closest_t:
+                continue
 
-        if center_dist > obj.radius:
-            continue
+            closest_x, closest_y = x + dx * proj, y + dy * proj
+            center_dist = math.hypot(obj.x - closest_x, obj.y - closest_y)
 
-        offset = math.sqrt(obj.radius**2 - center_dist**2)
-        t = proj - offset
+            if center_dist > obj.radius:
+                continue
 
-        if 0 <= t < closest_t:
-            closest_t = t
-            closest_category = "food"
+            offset = math.sqrt(obj.radius**2 - center_dist**2)
+            t = proj - offset
+
+            if 0 <= t < closest_t:
+                closest_t = t
+                closest_category = "food"
 
     for obj in organism_candidates:
 
@@ -97,7 +97,7 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, orga
 
         if 0 <= t < closest_t:
             closest_t = t
-            closest_category = "organism"
+            closest_category = obj.type
 
     return closest_t, closest_category
 
@@ -115,6 +115,7 @@ class Organism:
     def get_data(self):
 
         return {
+            "type": self.type,
             "x": self.x,
             "y": self.y,
             "energy": self.energy,
@@ -133,6 +134,8 @@ class Organism:
         )
 
     def __init__(self, x, y, genome):
+        self.type = "organism"
+
         # Genome
         self.genome = genome
 
@@ -141,6 +144,7 @@ class Organism:
         self.speed = genome.speed
         self.max_turn_speed = genome.max_turn_speed
         self.vision = genome.vision
+        self.ray_fov = math.radians(200)
 
         # Exploration
         self.wandering_noise = OU_Noise(
@@ -174,7 +178,7 @@ class Organism:
         self.brain_outputs = []
 
         # Sprite
-        self.image = ORGANISM_SPRITE
+        self.image = None
 
         # Reproduction
         self.next_reproduction = REPRODUCTION_AGE
@@ -236,18 +240,21 @@ class Organism:
     # SENSORS
 
     def cast_rays(self, food_grid, organism_grid):
-        half_fov = RAY_FOV / 2
+        half_fov = self.ray_fov / 2
         rays = []
 
         nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
 
-        nearby_food = food_grid.query(self.x, self.y, self.vision)
+        nearby_food = None
+
+        if not self.type == "predator":
+            nearby_food = food_grid.query(self.x, self.y, self.vision)
 
         for i in range(NUM_RAYS):
             if NUM_RAYS == 1:
                 offset = 0
             else:
-                offset = -half_fov + (RAY_FOV * i / (NUM_RAYS - 1))
+                offset = -half_fov + (self.ray_fov * i / (NUM_RAYS - 1))
 
             ray_angle = self.angle + offset
             distance, category = cast_ray(
@@ -277,9 +284,15 @@ class Organism:
         ray_inputs = [r["input"] for r in self.rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)
 
-        food_visible = any(r["category"] == "food" for r in self.rays)
+        ray_inputs_flat = [value for ray in ray_summaries for value in ray]
 
-        gated_noise = 0 if food_visible else self.current_noise
+        target_visible = any(r["category"] == "food" for r in self.rays)
+
+        if self.type == "predator":
+
+            target_visible = any(r["category"] == "prey" for r in self.rays)
+
+        gated_noise = 0 if target_visible else self.current_noise
 
         global_inputs = [
             self.energy / MAX_ENERGY,
@@ -287,7 +300,7 @@ class Organism:
             gated_noise,
         ]
 
-        return ray_summaries + global_inputs
+        return ray_inputs_flat + global_inputs
 
     # FOOD
 
@@ -354,8 +367,10 @@ class Organism:
                 color = (80, 220, 80)
             elif ray["category"] == "obstacle":
                 color = (255, 255, 0)
-            elif ray["category"] == "organism":
+            elif ray["category"] == "prey":
                 color = (48, 92, 222)
+            elif ray["category"] == "predator":
+                color = (255, 0, 56)
             else:
                 color = (140, 140, 140)
 

@@ -2,19 +2,27 @@ import random
 from organism import Organism
 from Brain.Genome import Genome
 from spatialgrid import SpatialGrid
+from predator import Predator
+from prey import Prey
 from settings import (
     WORLD_WIDTH,
     WORLD_HEIGHT,
-    POPULATION_SIZE,
     SPATIAL_CELL_SIZE,
     REPRODUCTION_OFFSET,
     ELITE_CLONE_CHANCE,
     REPRODUCTION_ENERGY_COST,
     REPRODUCTION_INTERVAL,
-    MAX_POPULATION,
     REPRODUCTION_CHILD_ENERGY,
+    MAX_PREDATORS,
+    MAX_PREY,
+    PREDATOR_POPULATION_SIZE,
+    PREY_POPULATION_SIZE,
+    RESEED_COUNT,
+    RESEED_DELAY,
 )
 import math
+
+MAX_POPULATION_BY_SPECIES = {Predator: MAX_PREDATORS, Prey: MAX_PREY}
 
 
 class Population:
@@ -23,6 +31,8 @@ class Population:
 
         self.best_genome = None
         self.best_fitness = float("-inf")
+
+        self.extinct_time = {Predator: 0, Prey: 0}
 
     def update_organism_position(self, organism):
         self.organism_grid.update(organism, organism.x, organism.y)
@@ -63,13 +73,20 @@ class Population:
 
         spawn_x, spawn_y = self.spawn_close(parent)
 
-        child = Organism(spawn_x, spawn_y, child_genome)
+        species = type(parent)
+        child = species(spawn_x, spawn_y, child_genome)
         child.energy = REPRODUCTION_CHILD_ENERGY
 
-        living = [o for o in organisms if not o.is_dead() and o is not parent]
+        same_species_living = [
+            o
+            for o in organisms
+            if not o.is_dead() and o is not parent and type(o) is species
+        ]
 
-        if len(living) >= MAX_POPULATION - 1:
-            weakest = min(living, key=lambda o: o.fitness)
+        max_species = MAX_POPULATION_BY_SPECIES[species]
+
+        if len(same_species_living) >= max_species - 1:
+            weakest = min(same_species_living, key=lambda o: o.fitness)
             self.record_death(weakest)
             self.organism_grid.remove(weakest)
             organisms.remove(weakest)
@@ -78,14 +95,32 @@ class Population:
         self.organism_grid.insert(child, child.x, child.y)
         return child
 
-    def create_initial_population(self, organisms):
-        self.organism_grid.clear()
+    def update_extinctions(self, organisms, dt):
+        for species in (Predator, Prey):
+            alive = any(type(o) is species for o in organisms)
 
-        for _ in range(POPULATION_SIZE):
+            if alive:
+                self.extinct_time[species] = 0
+                continue
+
+            self.extinct_time[species] += dt
+
+            if self.extinct_time[species] >= RESEED_DELAY:
+                self.spawn_species(organisms, species, RESEED_COUNT)
+                self.extinct_time[species] = 0
+
+    def spawn_species(self, organisms, species, count):
+        for _ in range(count):
             genome = Genome()
-            organism = Organism(
+            organism = species(
                 random.randint(0, WORLD_WIDTH), random.randint(0, WORLD_HEIGHT), genome
             )
             organisms.append(organism)
             self.organism_grid.insert(organism, organism.x, organism.y)
+
+    def create_initial_population(self, organisms):
+        self.organism_grid.clear()
+
+        self.spawn_species(organisms, Prey, PREY_POPULATION_SIZE)
+        self.spawn_species(organisms, Predator, PREDATOR_POPULATION_SIZE)
         return organisms

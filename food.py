@@ -3,7 +3,6 @@ import random
 import math
 
 from settings import (
-    FOOD_COLOR,
     FOOD_RADIUS,
     WORLD_HEIGHT,
     WORLD_WIDTH,

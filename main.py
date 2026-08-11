@@ -7,9 +7,12 @@ from camera import Camera
 from food import Food
 from bush import Bush
 from organism import Organism
+from predator import Predator
+from prey import Prey
 from Population import Population
 from SaveManager import SaveManager
 from spatialgrid import SpatialGrid
+from poissondisk import poisson_disk_sampling
 from settings import (
     BACKGROUND_COLOR,
     FAST_FORWARD_SPEED,
@@ -23,7 +26,7 @@ from settings import (
     KEY_FOLLOW_ORGANISM,
     KEY_PAUSE_SELECTION,
     MAX_ENERGY,
-    BUSH_COUNT,
+    BUSH_MIN_DISTANCE,
     SAVE_INTERVAL_MS,
     WIDTH,
     WORLD_HEIGHT,
@@ -76,9 +79,10 @@ food_respawn_timer = 0
 foods = []
 bushes = []
 
-for _ in range(BUSH_COUNT):
-    bush = Bush(random.uniform(0, WORLD_WIDTH), random.uniform(0, WORLD_HEIGHT))
-    bushes.append(bush)
+for bush_x, bush_y in poisson_disk_sampling(
+    WORLD_WIDTH, WORLD_HEIGHT, BUSH_MIN_DISTANCE
+):
+    bushes.append(Bush(bush_x, bush_y))
 
 bush_grid.clear()
 
@@ -164,20 +168,37 @@ while running:
 
         population.update_organism_position(organism)
 
-        nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
+        if isinstance(organism, Predator):
+            nearby_organisms = population.organism_grid.query(
+                organism.x, organism.y, organism.vision
+            )
 
-        for food in nearby_food:
+            for other in nearby_organisms:
 
-            if food not in foods:
-                continue
+                if not isinstance(other, Prey) or other.is_dead():
+                    continue
 
-            if organism.eat(food):
-                organism.food_eaten += 1
-                organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
-                organism.time_since_food = 0
-                foods.remove(food)
-                food_grid.remove(food)
-                break
+                if organism.eat_organism(other):
+                    # Reuses food_eaten/fitness bookkeeping - a "meal" for a
+                    # predator is a kill rather than a piece of food.
+                    organism.food_eaten += 1
+                    organism.time_since_food = 0
+                    break
+        else:
+            nearby_food = food_grid.query(organism.x, organism.y, organism.vision)
+
+            for food in nearby_food:
+
+                if food not in foods:
+                    continue
+
+                if organism.eat(food):
+                    organism.food_eaten += 1
+                    organism.energy = min(MAX_ENERGY, organism.energy + FOOD_ENERGY_VAL)
+                    organism.time_since_food = 0
+                    foods.remove(food)
+                    food_grid.remove(food)
+                    break
 
         if organism.ready_to_reproduce():
             population.reproduce(organism, organisms)
@@ -187,6 +208,8 @@ while running:
         population.record_death(dead_organism)
         population.organism_grid.remove(dead_organism)
         organisms.remove(dead_organism)
+
+    population.update_extinctions(organisms, dt)
 
     food_respawn_timer += dt
     while food_respawn_timer >= FOOD_RESPAWN_INTERVAL and len(foods) < FOOD_COUNT:

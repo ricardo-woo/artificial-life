@@ -1,15 +1,14 @@
 import random
 import math
 
-from settings import (
-    WEIGHT, BIAS
-)
+from settings import WEIGHT, BIAS
 
 
 class Neuron:
     def __init__(self, number_of_inputs):
-        self.weights = [random.uniform(-1, 1) for _ in range(number_of_inputs)]
-        self.bias = random.uniform(-1, 1)
+        limit = 1 / math.sqrt(number_of_inputs) if number_of_inputs > 0 else 1
+        self.weights = [random.uniform(-limit, limit) for _ in range(number_of_inputs)]
+        self.bias = random.uniform(-limit, limit)
 
     def activate(self, inputs):
 
@@ -25,7 +24,7 @@ class Neuron:
         new_neuron.bias = self.bias
         return new_neuron
 
-    def mutate(self, mutation_rate=0.1, mutation_strength=0.2):
+    def mutate(self, mutation_rate=0.1, mutation_strength=0.05):
         for i in range(len(self.weights)):
             if random.random() < mutation_rate:
                 self.weights[i] += random.uniform(-mutation_strength, mutation_strength)
