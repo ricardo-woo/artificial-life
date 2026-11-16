@@ -103,11 +103,17 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, orga
 
 
 def ray_to_input(distance, category, max_length):
-    distance_normalized = distance / max_length
+    if category is not None and max_length > 0:
+        proximity = 1 - min(1.0 , distance / max_length)
+    else:
+        proximity = 0
+
     one_hot = [0] * len(RAY_CATEGORIES)
+
     if category is not None:
         one_hot[RAY_CATEGORIES.index(category)] = 1
-    return [distance_normalized] + one_hot
+
+    return [proximity] + one_hot
 
 
 class Organism:
@@ -287,12 +293,13 @@ class Organism:
         ray_inputs_flat = [value for ray in ray_summaries for value in ray]
 
         target_visible = any(r["category"] == "food" for r in self.rays)
+        threat_visible = any(r["category"] == "predator" for r in self.rays)
 
         if self.type == "predator":
 
             target_visible = any(r["category"] == "prey" for r in self.rays)
 
-        gated_noise = 0 if target_visible else self.current_noise
+        gated_noise = 0 if (target_visible or threat_visible) else self.current_noise
 
         global_inputs = [
             self.energy / MAX_ENERGY,

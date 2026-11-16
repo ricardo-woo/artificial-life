@@ -111,7 +111,12 @@ class Population:
 
     def spawn_species(self, organisms, species, count):
         for _ in range(count):
-            genome = Genome()
+            if self.best_genome is not None:
+                genome = self.best_genome.copy()
+                genome.mutate()
+            else:
+                genome = Genome()
+                
             organism = species(
                 random.randint(0, WORLD_WIDTH), random.randint(0, WORLD_HEIGHT), genome
             )
