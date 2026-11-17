@@ -29,8 +29,8 @@ class Population:
     def __init__(self):
         self.organism_grid = SpatialGrid(SPATIAL_CELL_SIZE)
 
-        self.best_genome = None
-        self.best_fitness = float("-inf")
+        self.best_genome = {Predator: None, Prey: None}
+        self.best_fitness = {Predator: float("-inf"), Prey: float("-inf")}  
 
         self.extinct_time = {Predator: 0, Prey: 0}
 
@@ -38,9 +38,10 @@ class Population:
         self.organism_grid.update(organism, organism.x, organism.y)
 
     def find_best(self, organism):
-        if organism.fitness > self.best_fitness:
-            self.best_fitness = organism.fitness
-            self.best_genome = organism.genome.copy()
+        species_type = type(organism)
+        if organism.fitness > self.best_fitness[species_type]:
+            self.best_fitness[species_type] = organism.fitness
+            self.best_genome[species_type] = organism.genome.copy()
 
     def record_death(self, organism):
         self.find_best(organism)
@@ -111,12 +112,12 @@ class Population:
 
     def spawn_species(self, organisms, species, count):
         for _ in range(count):
-            if self.best_genome is not None:
-                genome = self.best_genome.copy()
+            if self.best_genome[species] is not None:
+                genome = self.best_genome[species].copy()
                 genome.mutate()
             else:
                 genome = Genome()
-                
+
             organism = species(
                 random.randint(0, WORLD_WIDTH), random.randint(0, WORLD_HEIGHT), genome
             )
