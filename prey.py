@@ -12,6 +12,7 @@ class Prey(Organism):
         self.image = PREY_SPRITE
         self.next_reproduction = PREY_REPRODUCTION_AGE
         self.ray_fov = RAY_FOV_PREY
+        self.killed_by_predator = False
 
     def update(self, food_grid, organism_grid,bush_grid, dt):
         return super().update(food_grid, organism_grid,bush_grid, dt)

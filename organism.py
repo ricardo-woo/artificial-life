@@ -157,11 +157,13 @@ class Organism:
 
     @property
     def fitness(self):
-        return (
-            self.food_eaten * FITNESS_FOOD_WEIGHT
-            + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
-            + (self.evasion * 0.1)
-        )
+        base_fitness = (self.food_eaten * FITNESS_FOOD_WEIGHT) + (min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR)
+
+        if getattr(self, "killed_by_predator", False):
+            return base_fitness * 0.5
+
+        evasion_bonus = getattr(self, "evasion", 0) * 0.05
+        return (max(base_fitness + evasion_bonus, 0))
 
     def __init__(self, x, y, genome):
         self.type = "organism"
@@ -244,7 +246,8 @@ class Organism:
         actual_speed = movement * self.speed
 
         if actual_speed >= WALK_RUN_TRANSITION:
-            movement_cost = RUN_SPEED_COEFFICIENT * actual_speed * dt
+            cost_multiplier = 0.5 if self.threat_visible else 1.0
+            movement_cost = RUN_SPEED_COEFFICIENT * actual_speed * dt * cost_multiplier
         else:
             movement_cost = WALK_SPEED_COEFFICIENT * actual_speed * dt
 
@@ -334,8 +337,8 @@ class Organism:
         self.threat_visible = any(r["category"] == "predator" for r in self.rays)
 
         if self.type == "predator":
-
             self.target_visible = any(r["category"] == "prey" for r in self.rays)
+            self.threat_visible = False
 
         gated_noise = 0 if (self.target_visible or self.threat_visible) else self.current_noise
 
