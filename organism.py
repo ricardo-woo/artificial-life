@@ -160,6 +160,7 @@ class Organism:
         return (
             self.food_eaten * FITNESS_FOOD_WEIGHT
             + min(self.age, FITNESS_AGE_CAP) / FITNESS_AGE_DIVISOR
+            + (self.evasion * 0.1)
         )
 
     def __init__(self, x, y, genome):
@@ -192,6 +193,9 @@ class Organism:
         # Survival
         self.energy = MAX_ENERGY
         self.time_since_food = 0
+        self.evasion = 0
+        self.target_visible = False
+        self.threat_visible = False
 
         # Exploration tracking
         self.idle_time = 0
@@ -230,6 +234,9 @@ class Organism:
         self.brain_outputs = self.brain.predict(self.brain_inputs)
 
         self.last_outputs = list(self.brain_outputs)
+
+        if self.threat_visible:
+            self.evasion += 1
 
         turn = self.brain_outputs[0]
         movement = (self.brain_outputs[1] + 1) / 2
@@ -323,14 +330,14 @@ class Organism:
 
         ray_inputs_flat = [value for ray in ray_summaries for value in ray]
 
-        target_visible = any(r["category"] == "food" for r in self.rays)
-        threat_visible = any(r["category"] == "predator" for r in self.rays)
+        self.target_visible = any(r["category"] == "food" for r in self.rays)
+        self.threat_visible = any(r["category"] == "predator" for r in self.rays)
 
         if self.type == "predator":
 
-            target_visible = any(r["category"] == "prey" for r in self.rays)
+            self.target_visible = any(r["category"] == "prey" for r in self.rays)
 
-        gated_noise = 0 if (target_visible or threat_visible) else self.current_noise
+        gated_noise = 0 if (self.target_visible or self.threat_visible) else self.current_noise
 
         global_inputs = [
             self.energy / MAX_ENERGY,

@@ -24,7 +24,7 @@ class Neuron:
         new_neuron.bias = self.bias
         return new_neuron
 
-    def mutate(self, mutation_rate=0.1, mutation_strength=0.05):
+    def mutate(self, mutation_rate=0.1, mutation_strength=0.25):
         for i in range(len(self.weights)):
             if random.random() < mutation_rate:
                 self.weights[i] += random.uniform(-mutation_strength, mutation_strength)
