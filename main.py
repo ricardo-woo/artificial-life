@@ -179,8 +179,7 @@ while running:
                     continue
 
                 if organism.eat_organism(other):
-                    # Reuses food_eaten/fitness bookkeeping - a "meal" for a
-                    # predator is a kill rather than a piece of food.
+                    other.killed_by_predator = True
                     organism.food_eaten += 1
                     organism.time_since_food = 0
                     break
