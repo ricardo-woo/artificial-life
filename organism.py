@@ -47,12 +47,33 @@ def distance_to_world_bounds(x, y, dx, dy, max_length):
     return max(0, t)
 
 
-def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, organism):
+def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, bush_candidates, organism):
     dx, dy = math.cos(angle), math.sin(angle)
     wall_t = distance_to_world_bounds(x, y, dx, dy, max_length)
 
     closest_t = wall_t
     closest_category = "obstacle" if wall_t < max_length else None
+
+    if bush_candidates:
+        for bush in bush_candidates:
+            obj_dx, obj_dy = bush.x - x, bush.y - y
+
+            proj = obj_dx * dx + obj_dy * dy
+            if proj < 0 or proj > closest_t:
+                continue
+
+            closest_x, closest_y = x + dx * proj, y + dy * proj
+            center_dist = math.hypot(bush.x - closest_x, bush.y - closest_y)
+
+            if center_dist > bush.radius:
+                continue
+
+            offset = math.sqrt(bush.radius**2 - center_dist**2)
+            t = proj - offset
+
+            if 0 <= t < closest_t:
+                closest_t = t
+                closest_category = "obstacle"
 
     if food_candidates:
 
@@ -193,7 +214,7 @@ class Organism:
 
     # UPDATE
 
-    def update(self, food_grid, organism_grid, dt):
+    def update(self, food_grid, organism_grid, bush_grid, dt):
         self.age += dt
         self.time_since_food += dt
 
@@ -203,7 +224,7 @@ class Organism:
 
         self.current_noise = self.wandering_noise.step(dt)
 
-        self.brain_inputs = self.get_brain_inputs(food_grid, organism_grid)
+        self.brain_inputs = self.get_brain_inputs(food_grid, organism_grid, bush_grid)
 
         self.brain_outputs = self.brain.predict(self.brain_inputs)
 
@@ -249,12 +270,12 @@ class Organism:
 
     # SENSORS
 
-    def cast_rays(self, food_grid, organism_grid):
+    def cast_rays(self, food_grid, organism_grid, bush_grid):
         half_fov = self.ray_fov / 2
         rays = []
 
         nearby_organisms = organism_grid.query(self.x, self.y, self.vision)
-
+        nearby_bushes = bush_grid.query(self.x, self.y, self.vision) if bush_grid else None
         nearby_food = None
 
         if not self.type == "predator":
@@ -274,6 +295,7 @@ class Organism:
                 self.vision,
                 nearby_food,
                 nearby_organisms,
+                nearby_bushes,
                 self,
             )
 
@@ -288,8 +310,8 @@ class Organism:
 
         return rays
 
-    def get_brain_inputs(self, food_grid, organism_grid):
-        self.rays = self.cast_rays(food_grid, organism_grid)
+    def get_brain_inputs(self, food_grid, organism_grid, bush_grid):
+        self.rays = self.cast_rays(food_grid, organism_grid, bush_grid)
 
         ray_inputs = [r["input"] for r in self.rays]
         ray_summaries = self.ray_sensor.process(ray_inputs)

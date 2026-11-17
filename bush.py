@@ -8,6 +8,7 @@ class Bush:
         self.x = x
         self.y = y
         self.image = BUSH_IMAGE
+        self.radius = 20
 
     def draw(self, screen, camera):
         screen_x, screen_y = camera.world_to_screen(self.x, self.y)

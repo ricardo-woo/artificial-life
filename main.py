@@ -164,7 +164,7 @@ while running:
             newly_dead.append(organism)
             continue
 
-        organism.update(food_grid, population.organism_grid, dt)
+        organism.update(food_grid, population.organism_grid, bush_grid, dt)
 
         population.update_organism_position(organism)
 

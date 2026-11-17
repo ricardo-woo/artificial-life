@@ -13,5 +13,5 @@ class Prey(Organism):
         self.next_reproduction = PREY_REPRODUCTION_AGE
         self.ray_fov = RAY_FOV_PREY
 
-    def update(self, food_grid, organism_grid, dt):
-        return super().update(food_grid, organism_grid, dt)
+    def update(self, food_grid, organism_grid,bush_grid, dt):
+        return super().update(food_grid, organism_grid,bush_grid, dt)

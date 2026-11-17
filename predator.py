@@ -19,8 +19,8 @@ class Predator(Organism):
 
         self.ray_fov = RAY_FOV_PREDATORS
 
-    def update(self, food_grid, organism_grid, dt):
-        return super().update(food_grid, organism_grid, dt)
+    def update(self, food_grid, organism_grid, bush_grid, dt):
+        return super().update(food_grid, organism_grid,bush_grid, dt)
 
     def eat_organism(self, target):
         if not self.eat(target):
