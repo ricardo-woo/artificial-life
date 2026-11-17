@@ -348,10 +348,28 @@ class Organism:
     # WORLD BOUNDARIES
 
     def keep_inside_world(self):
+        hit_wall = False
 
-        self.x = max(self.radius, min(WORLD_WIDTH - self.radius, self.x))
+        if self.x < self.radius:
+            self.x = self.radius
+            self.angle = math.pi - self.angle
+            hit_wall = True
+        elif self.x > WORLD_WIDTH - self.radius:
+            self.x = WORLD_WIDTH - self.radius
+            self.angle = math.pi - self.angle
+            hit_wall = True
 
-        self.y = max(self.radius, min(WORLD_HEIGHT - self.radius, self.y))
+        if self.y < self.radius:
+            self.y = self.radius
+            self.angle = math.pi - self.angle
+            hit_wall = True
+        elif self.y > WORLD_HEIGHT - self.radius:
+            self.y = WORLD_HEIGHT - self.radius
+            self.angle = math.pi - self.angle
+            hit_wall = True
+
+        self.angle %= math.tau
+        return hit_wall
 
     def is_dead(self):
 
