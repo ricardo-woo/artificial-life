@@ -30,7 +30,6 @@ class Predator(Organism):
         dy = target.y - self.y
 
         angle_to_target = math.atan2(dy, dx)
-
         angle_difference = (angle_to_target - self.angle + math.pi) % (
             2 * math.pi
         ) - math.pi
@@ -38,6 +37,6 @@ class Predator(Organism):
         if abs(angle_difference) > PREDATOR_ATTACK_ANGLE:
             return False
 
-        self.energy = min(MAX_ENERGY, self.energy + target.energy)
+        self.energy = min(MAX_ENERGY, self.energy + 50)
         target.energy = 0
         return True
