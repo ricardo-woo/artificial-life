@@ -300,7 +300,10 @@ class Organism:
             if NUM_RAYS == 1:
                 offset = 0
             else:
-                offset = -half_fov + (self.ray_fov * i / (NUM_RAYS - 1))
+                u = (2 * i) / (NUM_RAYS - 1) - 1
+
+                non_linear_u = 0.5 * (u ** 3) + 0.4 * u
+                offset = non_linear_u * half_fov
 
             ray_angle = self.angle + offset
             distance, category = cast_ray(
