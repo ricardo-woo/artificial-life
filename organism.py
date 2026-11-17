@@ -5,6 +5,7 @@ import time
 
 from settings import (
     OUTPUTS,
+    WALL_PENALTY,
     WORLD_WIDTH,
     WORLD_HEIGHT,
     MAX_ENERGY,
@@ -239,6 +240,10 @@ class Organism:
             movement_cost = RUN_SPEED_COEFFICIENT * actual_speed * dt
         else:
             movement_cost = WALK_SPEED_COEFFICIENT * actual_speed * dt
+
+        hit_wall = self.keep_inside_world()
+        if hit_wall:
+            self.energy -= WALL_PENALTY * dt  
 
         self.energy -= movement_cost
 
