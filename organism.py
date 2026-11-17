@@ -74,7 +74,7 @@ def cast_ray(x, y, angle, max_length, food_candidates, organism_candidates, bush
 
             if 0 <= t < closest_t:
                 closest_t = t
-                closest_category = "obstacle"
+                closest_category = "bush"
 
     if food_candidates:
 
@@ -425,6 +425,8 @@ class Organism:
                 color = (80, 220, 80)
             elif ray["category"] == "obstacle":
                 color = (255, 255, 0)
+            elif ray["category"] == "bush":
+                color = (34, 139, 34)
             elif ray["category"] == "prey":
                 color = (48, 92, 222)
             elif ray["category"] == "predator":

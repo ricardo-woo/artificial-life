@@ -94,7 +94,7 @@ MAX_TURN_SPEED = 5
 NUM_RAYS = 10
 RAY_FOV_PREY = math.radians(200)
 RAY_FOV_PREDATORS = math.radians(120)
-RAY_CATEGORIES = ["food", "obstacle", "prey", "predator"]
+RAY_CATEGORIES = ["food", "obstacle","bush", "prey", "predator"]
 VALUES_PER_RAY = 1 + len(RAY_CATEGORIES)
 
 PREDATOR_ATTACK_ANGLE = RAY_FOV_PREDATORS
