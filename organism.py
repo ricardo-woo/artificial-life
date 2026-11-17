@@ -4,6 +4,7 @@ import random
 import time
 
 from settings import (
+    OUTPUTS,
     WORLD_WIDTH,
     WORLD_HEIGHT,
     MAX_ENERGY,
@@ -183,6 +184,7 @@ class Organism:
         self.brain_inputs = []
         self.brain_outputs = []
 
+        self.last_outputs = [0.0] * OUTPUTS
         # Sprite
         self.image = None
 
@@ -204,6 +206,8 @@ class Organism:
         self.brain_inputs = self.get_brain_inputs(food_grid, organism_grid)
 
         self.brain_outputs = self.brain.predict(self.brain_inputs)
+
+        self.last_outputs = list(self.brain_outputs)
 
         turn = self.brain_outputs[0]
         movement = (self.brain_outputs[1] + 1) / 2
@@ -307,7 +311,9 @@ class Organism:
             gated_noise,
         ]
 
-        return ray_inputs_flat + global_inputs
+         
+
+        return ray_inputs_flat + global_inputs + self.last_outputs
 
     # FOOD
 
