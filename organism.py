@@ -4,6 +4,8 @@ import random
 import time
 
 from settings import (
+    MAX_VISION,
+    MAX_SPEED,
     OUTPUTS,
     WALL_PENALTY,
     WORLD_WIDTH,
@@ -270,6 +272,12 @@ class Organism:
         frame_distance = math.hypot(self.x - old_x, self.y - old_y)
 
         velocity = frame_distance / dt if dt > 0 else 0
+
+        trait_maintenance_cost = (
+            (self.speed / MAX_SPEED) *0.01 +
+            (self.vision / MAX_VISION) * 0.008) * dt\
+
+        self.energy -= trait_maintenance_cost
 
         if velocity < IDLE_VELOCITY_TRESHOLD:
             self.idle_time += dt
